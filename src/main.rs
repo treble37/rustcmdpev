@@ -1,43 +1,9 @@
 use serde::{Deserialize, Serialize};
 use std::env;
 use std::fmt;
-use std::vec::Vec;
 
 type NodeType = String;
 type EstimateDirection = String;
-#[derive(Serialize, Deserialize)]
-struct Plans<T>(Vec<T>);
-
-//https://blog.guillaume-gomez.fr/articles/2017-03-09+Little+tour+of+multiple+iterators+implementation+in+Rust
-pub struct PlansIter<'a, T: 'a> {
-    inner: &'a Plans<T>,
-    pos: usize,
-}
-
-impl<'a, T> Iterator for PlansIter<'a, T> {
-    type Item = &'a T;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.pos >= self.inner.0.len() {
-            // Obviously, there isn't any more data to read so let's stop here.
-            None
-        } else {
-            // We increment the position of our iterator.
-            self.pos += 1;
-            // We return the current value pointed by our iterator.
-            self.inner.0.get(self.pos - 1)
-        }
-    }
-}
-
-impl<T> Plans<T> {
-    fn iter<'a>(&'a self) -> PlansIter<'a, T> {
-        PlansIter {
-            inner: self,
-            pos: 0,
-        }
-    }
-}
 
 //https://github.com/serde-rs/serde/pull/238
 #[derive(Serialize, Deserialize, Debug)]
@@ -132,6 +98,8 @@ struct Plan {
     temp_written_blocks: u64,
     #[serde(default)]
     total_cost: f64,
+    #[serde(default)]
+    plans: Vec<Plan>,
 }
 
 impl fmt::Display for Plan {
@@ -145,23 +113,11 @@ impl fmt::Display for Plan {
         write!(f, "{}", self)
     }
 }
-//https://stackoverflow.com/questions/30633177/implement-fmtdisplay-for-vect
-/*impl fmt::Display for Plans {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-       write!(f, "Values:\n")?;
-        for v in &self.0 {
-            write!(f, "\t{}", v)?;
-        }
-        Ok(())
-    }
-}*/
 
 fn main() {
     let args: Vec<String> = env::args().collect();
     let input: &str = &args[1];
     println!("args {}", input);
-    /*let plan: Plan = serde_json::from_str(input).unwrap();
-    println!("single plan {:#?}", plan)*/
     let plans: Vec<Plan> = serde_json::from_str(input).unwrap();
     for v in plans.iter() {
         println!("plan {:#?}", v)
