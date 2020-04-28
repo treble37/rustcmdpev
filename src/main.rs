@@ -11,14 +11,14 @@ struct Plans<T>(Vec<T>);
 //https://blog.guillaume-gomez.fr/articles/2017-03-09+Little+tour+of+multiple+iterators+implementation+in+Rust
 pub struct PlansIter<'a, T: 'a> {
     inner: &'a Plans<T>,
-    pos: usize
+    pos: usize,
 }
 
 impl<'a, T> Iterator for PlansIter<'a, T> {
     type Item = &'a T;
 
     fn next(&mut self) -> Option<Self::Item> {
-if self.pos >= self.inner.0.len() {
+        if self.pos >= self.inner.0.len() {
             // Obviously, there isn't any more data to read so let's stop here.
             None
         } else {
@@ -40,7 +40,7 @@ impl<T> Plans<T> {
 }
 
 //https://github.com/serde-rs/serde/pull/238
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 struct Plan {
     #[serde(default)]
     actual_cost: f64,
@@ -160,9 +160,10 @@ fn main() {
     let args: Vec<String> = env::args().collect();
     let input: &str = &args[1];
     println!("args {}", input);
-    let plans: Plans<Plan> = serde_json::from_str(input).unwrap();
+    /*let plan: Plan = serde_json::from_str(input).unwrap();
+    println!("single plan {:#?}", plan)*/
+    let plans: Vec<Plan> = serde_json::from_str(input).unwrap();
     for v in plans.iter() {
-        println!("plan {}", v)
-    } 
-    //println!("input {}", plans);
+        println!("plan {:#?}", v)
+    }
 }
