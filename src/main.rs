@@ -2,6 +2,9 @@ use serde::{Deserialize, Serialize};
 use std::env;
 use std::fmt;
 
+const UNDER: &str = "Under";
+const OVER: &str = "Over";
+
 type NodeType = String;
 type EstimateDirection = String;
 
@@ -114,12 +117,40 @@ impl fmt::Display for Plan {
     }
 }
 
+fn calculate_planner_estimate(mut plan: Plan) -> Plan {
+    plan.planner_row_estimate_factor = 0.0;
+
+    if plan.plan_rows == plan.actual_rows {
+        return plan;
+    }
+
+    plan.planner_row_estimate_direction = UNDER.to_string();
+    if plan.plan_rows != 0 {
+        plan.planner_row_estimate_factor = plan.actual_rows as f64 / plan.plan_rows as f64;
+    }
+
+    if plan.planner_row_estimate_factor < 1.0 {
+        plan.planner_row_estimate_factor = 0.0;
+        plan.planner_row_estimate_direction = OVER.to_string();
+        if plan.actual_rows != 0 {
+            plan.planner_row_estimate_factor = plan.plan_rows as f64 / plan.actual_rows as f64;
+        }
+    }
+    return plan;
+}
+
+// a little smoke test...
+fn write_explain_stub() {
+    println!("○ Total Cost: {}\n", 4.265_f64);
+}
+
 fn main() {
     let args: Vec<String> = env::args().collect();
     let input: &str = &args[1];
     println!("args {}", input);
     let plans: Vec<Plan> = serde_json::from_str(input).unwrap();
-    for v in plans.iter() {
-        println!("plan {:#?}", v)
+    for plan in plans.iter() {
+        println!("plan {:#?}", plan)
     }
+    write_explain_stub()
 }
