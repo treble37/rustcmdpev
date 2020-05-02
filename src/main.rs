@@ -10,7 +10,7 @@ type NodeType = String;
 type EstimateDirection = String;
 
 #[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all="snake_case")]
+#[serde(rename_all = "snake_case")]
 struct Explain {
     //TODO: add Triggers back, add default for plan?
     plan: Plan,
@@ -29,9 +29,9 @@ struct Explain {
 }
 
 //https://github.com/serde-rs/serde/pull/238
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all="snake_case")]
-struct Plan {
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "snake_case")]
+pub struct Plan {
     #[serde(default)]
     actual_cost: f64,
     #[serde(default)]
@@ -138,63 +138,66 @@ impl fmt::Display for Plan {
     }
 }
 
-impl Plan {
-    fn calculate_planner_estimate(&mut self) {
-        self.planner_row_estimate_factor = 0.0;
+pub fn calculate_planner_estimate(mut plan: Plan) -> Plan {
+    plan.planner_row_estimate_factor = 0.0;
 
-        if self.plan_rows == self.actual_rows {
-            return;
-        }
+    if plan.plan_rows == plan.actual_rows {
+        return plan;
+    }
 
-        self.planner_row_estimate_direction = UNDER.to_string();
-        if self.plan_rows != 0 {
-            self.planner_row_estimate_factor = self.actual_rows as f64 / self.plan_rows as f64;
-        }
+    plan.planner_row_estimate_direction = UNDER.to_string();
+    if plan.plan_rows != 0 {
+        plan.planner_row_estimate_factor = plan.actual_rows as f64 / plan.plan_rows as f64;
+    }
 
-        if self.planner_row_estimate_factor < 1.0 {
-            self.planner_row_estimate_factor = 0.0;
-            self.planner_row_estimate_direction = OVER.to_string();
-            if self.actual_rows != 0 {
-                self.planner_row_estimate_factor = self.plan_rows as f64 / self.actual_rows as f64;
-            }
+    if plan.planner_row_estimate_factor < 1.0 {
+        plan.planner_row_estimate_factor = 0.0;
+        plan.planner_row_estimate_direction = OVER.to_string();
+        if plan.actual_rows != 0 {
+            plan.planner_row_estimate_factor = plan.plan_rows as f64 / plan.actual_rows as f64;
         }
     }
+    plan
 }
 
 impl Explain {
     pub fn process_explain(&mut self) {
-        self.plan.calculate_planner_estimate();
-        self.calculate_actuals();
-        self.calculate_maximums();
+        self.plan = calculate_planner_estimate(self.plan.clone());
+        self.plan = self.calculate_actuals(self.plan.clone());
+        self.calculate_maximums(self.plan.clone());
+        //need to figure out how to deal with recursive process_plan
     }
-    pub fn calculate_actuals(&mut self) {
-        self.plan.actual_duration = self.plan.actual_total_time;
-        self.plan.actual_cost = self.plan.total_cost;
+    pub fn calculate_actuals(&mut self, mut plan: Plan) -> Plan {
+        plan.actual_duration = plan.actual_total_time;
+        plan.actual_cost = plan.total_cost;
 
-        for child in self.plan.plans.iter() {
-            if child.node_type != CTE_SCAN {
-                self.plan.actual_duration = self.plan.actual_duration - child.actual_total_time;
-                self.plan.actual_cost = self.plan.actual_cost - child.total_cost;
+        for mut child_plan in plan.clone().plans {
+            if child_plan.node_type != CTE_SCAN {
+                child_plan.actual_duration =
+                    child_plan.actual_duration - child_plan.actual_total_time;
+                child_plan.actual_cost = child_plan.actual_cost - child_plan.total_cost;
             }
         }
 
-        if self.plan.actual_cost < 0.0 {
-            self.plan.actual_cost = 0.0;
+        if plan.actual_cost < 0.0 {
+            plan.actual_cost = 0.0;
         }
 
-        self.total_cost = self.total_cost + self.plan.actual_cost;
+        self.total_cost = self.total_cost + plan.actual_cost;
 
-        self.plan.actual_duration = self.plan.actual_duration * self.plan.actual_loops as f64;
+        plan.actual_duration = plan.actual_duration * plan.actual_loops as f64;
+        plan
     }
-    pub fn calculate_maximums(&mut self) {
-        if self.max_rows < self.plan.actual_rows {
-            self.max_rows = self.plan.actual_rows
+
+    pub fn calculate_maximums(&mut self, plan: Plan) {
+        if self.max_rows < plan.actual_rows {
+            self.max_rows = plan.actual_rows
         }
-        if self.max_cost < self.plan.actual_cost {
-            self.max_cost = self.plan.actual_cost
+        if self.max_cost < plan.actual_cost {
+            self.max_cost = plan.actual_cost
         }
-        if self.max_duration < self.plan.actual_duration {
-            self.max_duration = self.plan.actual_duration
+        if self.max_duration < plan.actual_duration {
+            self.max_duration = plan.actual_duration
         }
     }
 }
