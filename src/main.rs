@@ -9,9 +9,9 @@ const CTE_SCAN: &str = "CTE Scan";
 type NodeType = String;
 type EstimateDirection = String;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "snake_case")]
-struct Explain {
+pub struct Explain {
     //TODO: add Triggers back, add default for plan?
     plan: Plan,
     #[serde(default)]
@@ -160,46 +160,50 @@ pub fn calculate_planner_estimate(mut plan: Plan) -> Plan {
     plan
 }
 
-impl Explain {
-    pub fn process_explain(&mut self) {
-        self.plan = calculate_planner_estimate(self.plan.clone());
-        self.plan = self.calculate_actuals(self.plan.clone());
-        self.calculate_maximums(self.plan.clone());
-        //need to figure out how to deal with recursive process_plan
-    }
-    pub fn calculate_actuals(&mut self, mut plan: Plan) -> Plan {
-        plan.actual_duration = plan.actual_total_time;
-        plan.actual_cost = plan.total_cost;
+pub fn calculate_actuals(mut explain: Explain, mut plan: Plan) -> (Explain, Plan) {
+    plan.actual_duration = plan.actual_total_time;
+    plan.actual_cost = plan.total_cost;
 
-        for mut child_plan in plan.clone().plans {
-            if child_plan.node_type != CTE_SCAN {
-                child_plan.actual_duration =
-                    child_plan.actual_duration - child_plan.actual_total_time;
-                child_plan.actual_cost = child_plan.actual_cost - child_plan.total_cost;
-            }
-        }
-
-        if plan.actual_cost < 0.0 {
-            plan.actual_cost = 0.0;
-        }
-
-        self.total_cost = self.total_cost + plan.actual_cost;
-
-        plan.actual_duration = plan.actual_duration * plan.actual_loops as f64;
-        plan
-    }
-
-    pub fn calculate_maximums(&mut self, plan: Plan) {
-        if self.max_rows < plan.actual_rows {
-            self.max_rows = plan.actual_rows
-        }
-        if self.max_cost < plan.actual_cost {
-            self.max_cost = plan.actual_cost
-        }
-        if self.max_duration < plan.actual_duration {
-            self.max_duration = plan.actual_duration
+    for mut child_plan in &mut plan.plans {
+        if child_plan.node_type != CTE_SCAN {
+            child_plan.actual_duration = child_plan.actual_duration - child_plan.actual_total_time;
+            child_plan.actual_cost = child_plan.actual_cost - child_plan.total_cost;
         }
     }
+
+    if plan.actual_cost < 0.0 {
+        plan.actual_cost = 0.0;
+    }
+
+    explain.total_cost = explain.total_cost + plan.actual_cost;
+
+    plan.actual_duration = plan.actual_duration * plan.actual_loops as f64;
+    (explain, plan)
+}
+pub fn process_explain(mut explain: Explain) -> Explain {
+    let plan: Plan = calculate_planner_estimate(explain.plan.clone());
+    let (e, plan) = calculate_actuals(explain.clone(), plan);
+    explain = calculate_maximums(e.clone(), plan);
+    //need to figure out how to deal with recursive process_plan
+    for mut child_plan in e.plan.plans {
+        child_plan = calculate_planner_estimate(child_plan.clone());
+        let (explain2, _child_plan) = calculate_actuals(explain.clone(), child_plan);
+        explain = explain2
+    }
+    explain
+}
+
+pub fn calculate_maximums(mut explain: Explain, plan: Plan) -> Explain {
+    if explain.max_rows < plan.actual_rows {
+        explain.max_rows = plan.actual_rows
+    }
+    if explain.max_cost < plan.actual_cost {
+        explain.max_cost = plan.actual_cost
+    }
+    if explain.max_duration < plan.actual_duration {
+        explain.max_duration = plan.actual_duration
+    }
+    explain
 }
 
 // a little smoke test...
