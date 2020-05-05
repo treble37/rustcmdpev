@@ -12,19 +12,19 @@ type EstimateDirection = String;
 #[serde(rename_all = "snake_case")]
 pub struct Explain {
     //TODO: add Triggers back, add default for plan?
-    plan: Plan,
+    pub plan: Plan,
     #[serde(default)]
-    planning_time: f64,
+    pub planning_time: f64,
     #[serde(default)]
-    execution_time: f64,
+    pub execution_time: f64,
     #[serde(default)]
-    total_cost: f64,
+    pub total_cost: f64,
     #[serde(default)]
-    max_rows: u64,
+    pub max_rows: u64,
     #[serde(default)]
-    max_cost: f64,
+    pub max_cost: f64,
     #[serde(default)]
-    max_duration: f64,
+    pub max_duration: f64,
 }
 
 //https://github.com/serde-rs/serde/pull/238
