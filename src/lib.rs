@@ -137,6 +137,74 @@ impl fmt::Display for Plan {
     }
 }
 
+impl Default for Plan {
+    fn default() -> Plan {
+        Plan {
+            actual_cost: 0.0,
+            actual_duration: 0.0,
+            actual_loops: 0,
+            actual_rows: 0,
+            actual_startup_time: 0.0,
+            actual_total_time: 0.0,
+            alias: String::from(""),
+            costliest: false,
+            cte_name: String::from(""),
+            filter: String::from(""),
+            group_key: Vec::new(),
+            hash_condition: String::from(""),
+            heap_fetches: 0,
+            index_condition: String::from(""),
+            index_name: String::from(""),
+            io_read_time: 0.0,
+            io_write_time: 0.0,
+            join_type: String::from(""),
+            largest: false,
+            local_dirtied_blocks: 0,
+            local_hit_blocks: 0,
+            local_read_blocks: 0,
+            local_written_blocks: 0,
+            node_type: String::from(""),
+            output: Vec::new(),
+            parent_relationship: String::from(""),
+            planner_row_estimate_direction: String::from(""),
+            planner_row_estimate_factor: 0.0,
+            plan_rows: 0,
+            plan_width: 0,
+            relation_name: String::from(""),
+            rows_removed_by_filter: 0,
+            rows_removed_by_index_recheck: 0,
+            scan_direction: String::from(""),
+            schema: String::from(""),
+            shared_dirtied_blocks: 0,
+            shared_hit_blocks: 0,
+            shared_read_blocks: 0,
+            shared_written_blocks: 0,
+            slowest: false,
+            startup_cost: 0.0,
+            strategy: String::from(""),
+            temp_read_blocks: 0,
+            temp_written_blocks: 0,
+            total_cost: 0.0,
+            plans: Vec::new(),
+        }
+    }
+}
+impl Default for Explain {
+    fn default() -> Explain {
+        Explain {
+            plan: Plan {
+                ..Default::default()
+            },
+            planning_time: 0.0,
+            execution_time: 0.0,
+            total_cost: 0.0,
+            max_rows: 0,
+            max_cost: 0.0,
+            max_duration: 0.0,
+        }
+    }
+}
+
 pub fn calculate_planner_estimate(mut plan: Plan) -> Plan {
     plan.planner_row_estimate_factor = 0.0;
 
