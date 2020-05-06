@@ -189,6 +189,7 @@ impl Default for Plan {
         }
     }
 }
+
 impl Default for Explain {
     fn default() -> Explain {
         Explain {
@@ -205,11 +206,11 @@ impl Default for Explain {
     }
 }
 
-pub fn calculate_planner_estimate(mut plan: Plan) -> Plan {
+pub fn calculate_planner_estimate(plan: &mut Plan) {
     plan.planner_row_estimate_factor = 0.0;
 
     if plan.plan_rows == plan.actual_rows {
-        return plan;
+        return;
     }
 
     plan.planner_row_estimate_direction = UNDER.to_string();
@@ -224,10 +225,9 @@ pub fn calculate_planner_estimate(mut plan: Plan) -> Plan {
             plan.planner_row_estimate_factor = plan.plan_rows as f64 / plan.actual_rows as f64;
         }
     }
-    plan
 }
 
-pub fn calculate_actuals(mut explain: Explain, mut plan: Plan) -> (Explain, Plan) {
+pub fn calculate_actuals(explain: &mut Explain, plan: &mut Plan) {
     plan.actual_duration = plan.actual_total_time;
     plan.actual_cost = plan.total_cost;
 
@@ -245,10 +245,9 @@ pub fn calculate_actuals(mut explain: Explain, mut plan: Plan) -> (Explain, Plan
     explain.total_cost = explain.total_cost + plan.actual_cost;
 
     plan.actual_duration = plan.actual_duration * plan.actual_loops as f64;
-    (explain, plan)
 }
 
-pub fn calculate_maximums(mut explain: Explain, plan: Plan) -> Explain {
+pub fn calculate_maximums(explain: &mut Explain, plan: Plan) {
     if explain.max_rows < plan.actual_rows {
         explain.max_rows = plan.actual_rows
     }
@@ -258,18 +257,18 @@ pub fn calculate_maximums(mut explain: Explain, plan: Plan) -> Explain {
     if explain.max_duration < plan.actual_duration {
         explain.max_duration = plan.actual_duration
     }
-    explain
 }
 
-pub fn process_explain(mut explain: Explain) -> Explain {
-    let plan: Plan = calculate_planner_estimate(explain.plan.clone());
-    let (e, plan) = calculate_actuals(explain.clone(), plan);
-    explain = calculate_maximums(e.clone(), plan);
+pub fn process_explain(explain: &mut Explain) {
+    let mut plan: Plan = explain.plan.clone();
+    calculate_planner_estimate(&mut plan);
+    calculate_actuals(explain, &mut plan);
+    explain.plan = plan.clone();
+    calculate_maximums(explain, plan.clone());
     //need to figure out how to deal with recursive process_plan
-    for mut child_plan in e.plan.plans {
-        child_plan = calculate_planner_estimate(child_plan.clone());
-        let (explain2, child_plan) = calculate_actuals(explain.clone(), child_plan.clone());
-        explain = calculate_maximums(explain2, child_plan);
+    for mut child_plan in plan.plans {
+        calculate_planner_estimate(&mut child_plan);
+        calculate_actuals(explain,  &mut child_plan);
+        calculate_maximums(explain, child_plan);
     }
-    explain
 }
