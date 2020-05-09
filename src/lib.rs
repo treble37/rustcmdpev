@@ -8,8 +8,14 @@ const CTE_SCAN: &str = "CTE Scan";
 type NodeType = String;
 type EstimateDirection = String;
 
+#[derive(Deserialize, Debug)]
+pub struct User {
+    pub fingerprint: String,
+    pub location: String,
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
-#[serde(rename_all = "snake_case")]
+#[serde(rename_all = "PascalCase")]
 pub struct Explain {
     //TODO: add Triggers back, add default for plan?
     pub plan: Plan,
@@ -29,7 +35,7 @@ pub struct Explain {
 
 //https://github.com/serde-rs/serde/pull/238
 #[derive(Serialize, Deserialize, Debug, Clone)]
-#[serde(rename_all = "snake_case")]
+#[serde(rename_all = "PascalCase")]
 pub struct Plan {
     #[serde(default)]
     actual_cost: f64,
@@ -206,69 +212,92 @@ impl Default for Explain {
     }
 }
 
-pub fn calculate_planner_estimate(plan: &mut Plan) {
-    plan.planner_row_estimate_factor = 0.0;
+// https://www.forrestthewoods.com/blog/should-small-rust-structs-be-passed-by-copy-or-by-borrow/
+pub fn calculate_planner_estimate(plan: Plan) -> Plan {
+    let mut new_plan: Plan = plan;
+    new_plan.planner_row_estimate_factor = 0.0;
 
-    if plan.plan_rows == plan.actual_rows {
-        return;
+    if new_plan.plan_rows == new_plan.actual_rows {
+        return new_plan;
     }
 
-    plan.planner_row_estimate_direction = UNDER.to_string();
-    if plan.plan_rows != 0 {
-        plan.planner_row_estimate_factor = plan.actual_rows as f64 / plan.plan_rows as f64;
+    new_plan.planner_row_estimate_direction = UNDER.to_string();
+    if new_plan.plan_rows != 0 {
+        new_plan.planner_row_estimate_factor =
+            new_plan.actual_rows as f64 / new_plan.plan_rows as f64;
     }
 
-    if plan.planner_row_estimate_factor < 1.0 {
-        plan.planner_row_estimate_factor = 0.0;
-        plan.planner_row_estimate_direction = OVER.to_string();
-        if plan.actual_rows != 0 {
-            plan.planner_row_estimate_factor = plan.plan_rows as f64 / plan.actual_rows as f64;
+    if new_plan.planner_row_estimate_factor < 1.0 {
+        new_plan.planner_row_estimate_factor = 0.0;
+        new_plan.planner_row_estimate_direction = OVER.to_string();
+        if new_plan.actual_rows != 0 {
+            new_plan.planner_row_estimate_factor =
+                new_plan.plan_rows as f64 / new_plan.actual_rows as f64;
         }
     }
+    new_plan
 }
 
-pub fn calculate_actuals(explain: &mut Explain, plan: &mut Plan) {
-    plan.actual_duration = plan.actual_total_time;
-    plan.actual_cost = plan.total_cost;
-
-    for mut child_plan in &mut plan.plans {
+pub fn calculate_actuals(explain: Explain, plan: Plan) -> (Explain, Plan) {
+    let mut new_plan: Plan = plan;
+    let mut new_explain: Explain = explain;
+    new_plan.actual_duration = new_plan.actual_total_time;
+    new_plan.actual_cost = new_plan.total_cost;
+    for mut child_plan in new_plan.plans.iter_mut() {
         if child_plan.node_type != CTE_SCAN {
             child_plan.actual_duration = child_plan.actual_duration - child_plan.actual_total_time;
             child_plan.actual_cost = child_plan.actual_cost - child_plan.total_cost;
         }
     }
 
-    if plan.actual_cost < 0.0 {
-        plan.actual_cost = 0.0;
+    if new_plan.actual_cost < 0.0 {
+        new_plan.actual_cost = 0.0;
     }
 
-    explain.total_cost = explain.total_cost + plan.actual_cost;
-
-    plan.actual_duration = plan.actual_duration * plan.actual_loops as f64;
+    new_explain.total_cost = new_explain.total_cost + new_plan.actual_cost;
+    println!("{:?}", new_plan.total_cost);
+    new_plan.actual_duration = new_plan.actual_duration * new_plan.actual_loops as f64;
+    (new_explain, new_plan)
 }
 
-pub fn calculate_maximums(explain: &mut Explain, plan: Plan) {
-    if explain.max_rows < plan.actual_rows {
-        explain.max_rows = plan.actual_rows
+pub fn calculate_maximums(explain: Explain, plan: Plan) -> Explain {
+    let mut new_explain: Explain = explain;
+    if new_explain.max_rows < plan.actual_rows {
+        new_explain.max_rows = plan.actual_rows
     }
-    if explain.max_cost < plan.actual_cost {
-        explain.max_cost = plan.actual_cost
+    if new_explain.max_cost < plan.actual_cost {
+        new_explain.max_cost = plan.actual_cost
     }
-    if explain.max_duration < plan.actual_duration {
-        explain.max_duration = plan.actual_duration
+    if new_explain.max_duration < plan.actual_duration {
+        new_explain.max_duration = plan.actual_duration
     }
+    new_explain
 }
 
-pub fn process_explain(explain: &mut Explain) {
-    let mut plan: Plan = explain.plan.clone();
-    calculate_planner_estimate(&mut plan);
-    calculate_actuals(explain, &mut plan);
-    explain.plan = plan.clone();
-    calculate_maximums(explain, plan.clone());
+pub fn process_explain(explain: Explain) -> Explain {
+    let mut new_explain: Explain = explain;
+    new_explain.plan = calculate_planner_estimate(new_explain.plan);
+    let (e, p) = calculate_actuals(new_explain.clone(), new_explain.clone().plan);
+    new_explain = e.clone();
+    new_explain.plan = p.clone();
+    new_explain = calculate_maximums(new_explain.clone(), new_explain.plan);
+    new_explain
+}
+/*
+pub fn process_explain_child_plans(explain: Explain, plan: Plan) -> (Explain, Plan) {
     //need to figure out how to deal with recursive process_plan
-    for mut child_plan in plan.plans {
-        calculate_planner_estimate(&mut child_plan);
-        calculate_actuals(explain,  &mut child_plan);
-        calculate_maximums(explain, child_plan);
+    let mut new_explain: Explain = explain;
+    for mut child_plan in plan.plans.into_iter() {
+        child_plan = calculate_planner_estimate(child_plan);
+        let (e, p) = calculate_actuals(new_explain.clone(),  child_plan.clone());
+        new_explain = e;
+        child_plan = p;
+        new_explain = calculate_maximums(new_explain, child_plan);
     }
+    new_explain
+}*/
+pub fn process_all(explain: Explain) -> Explain {
+    let mut new_explain: Explain = explain;
+    new_explain = process_explain(new_explain.clone());
+    new_explain
 }
