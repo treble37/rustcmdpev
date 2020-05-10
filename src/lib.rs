@@ -8,12 +8,6 @@ const CTE_SCAN: &str = "CTE Scan";
 type NodeType = String;
 type EstimateDirection = String;
 
-#[derive(Deserialize, Debug)]
-pub struct User {
-    pub fingerprint: String,
-    pub location: String,
-}
-
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "PascalCase")]
 pub struct Explain {
