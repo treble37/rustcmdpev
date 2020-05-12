@@ -29,7 +29,6 @@ pub struct Explain {
 
 //https://github.com/serde-rs/serde/pull/238
 #[derive(Serialize, Deserialize, Debug, Clone)]
-#[serde(rename_all = "PascalCase")]
 pub struct Plan {
     #[serde(default)]
     actual_cost: f64,
@@ -43,7 +42,7 @@ pub struct Plan {
     actual_startup_time: f64,
     #[serde(default)]
     actual_total_time: f64,
-    #[serde(default)]
+    #[serde(default, rename(deserialize = "Alias"))]
     alias: String,
     #[serde(default)]
     costliest: bool,
@@ -119,7 +118,7 @@ pub struct Plan {
     temp_read_blocks: u64,
     #[serde(default)]
     temp_written_blocks: u64,
-    #[serde(default)]
+    #[serde(default, rename(deserialize = "Total Cost"))]
     total_cost: f64,
     #[serde(default)]
     plans: Vec<Plan>,
