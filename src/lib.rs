@@ -31,99 +31,98 @@ pub struct Explain {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Plan {
     #[serde(default, rename(deserialize = "Actual Cost"))]
-    actual_cost: f64,
+    pub actual_cost: f64,
     #[serde(default, rename(deserialize = "Actual Duration"))]
-    actual_duration: f64,
+    pub actual_duration: f64,
     #[serde(default, rename(deserialize = "Actual Loops"))]
-    actual_loops: u64,
+    pub actual_loops: u64,
     #[serde(default, rename(deserialize = "Actual Rows"))]
-    actual_rows: u64,
+    pub actual_rows: u64,
     #[serde(default, rename(deserialize = "Actual Startup Time"))]
-    actual_startup_time: f64,
+    pub actual_startup_time: f64,
     #[serde(default, rename(deserialize = "Actual Total Time"))]
-    actual_total_time: f64,
+    pub actual_total_time: f64,
     #[serde(default, rename(deserialize = "Alias"))]
-    alias: String,
+    pub alias: String,
     #[serde(default, rename(deserialize = "Costliest"))]
-    costliest: bool,
+    pub costliest: bool,
     #[serde(default, rename(deserialize = "CTE Name"))]
-    cte_name: String,
+    pub cte_name: String,
     #[serde(default, rename(deserialize = "Filter"))]
-    filter: String,
+    pub filter: String,
     #[serde(default, rename(deserialize = "Group Key"))]
-    group_key: Vec<String>,
+    pub group_key: Vec<String>,
     #[serde(default, rename(deserialize = "Hash Condition"))]
-    hash_condition: String,
+    pub hash_condition: String,
     #[serde(default, rename(deserialize = "Heap Fetches"))]
-    heap_fetches: u64,
+    pub heap_fetches: u64,
     #[serde(default, rename(deserialize = "Index Condition"))]
-    index_condition: String,
+    pub index_condition: String,
     #[serde(default, rename(deserialize = "Index Name"))]
-    index_name: String,
+    pub index_name: String,
     #[serde(default, rename(deserialize = "I/O Read Time"))]
-    io_read_time: f64,
+    pub io_read_time: f64,
     #[serde(default, rename(deserialize = "I/O Write Time"))]
-    io_write_time: f64,
+    pub io_write_time: f64,
     #[serde(default, rename(deserialize = "Join Type"))]
-    join_type: String,
+    pub join_type: String,
     #[serde(default)]
-    largest: bool,
+    pub largest: bool,
     #[serde(default, rename(deserialize = "Local Dirtied Blocks"))]
-    local_dirtied_blocks: u64,
+    pub local_dirtied_blocks: u64,
     #[serde(default, rename(deserialize = "Local Hit Blocks"))]
-    local_hit_blocks: u64,
+    pub local_hit_blocks: u64,
     #[serde(default, rename(deserialize = "Local Read Blocks"))]
-    local_read_blocks: u64,
+    pub local_read_blocks: u64,
     #[serde(default, rename(deserialize = "Local Written Blocks"))]
-    local_written_blocks: u64,
+    pub local_written_blocks: u64,
     #[serde(default, rename(deserialize = "Node Type"))]
-    node_type: NodeType,
+    pub node_type: NodeType,
     #[serde(default, rename(deserialize = "Output"))]
-    output: Vec<String>,
+    pub output: Vec<String>,
     #[serde(default, rename(deserialize = "Parent Relationship"))]
-    parent_relationship: String,
+    pub parent_relationship: String,
     #[serde(default)]
-    planner_row_estimate_direction: EstimateDirection,
+    pub planner_row_estimate_direction: EstimateDirection,
     #[serde(default)]
-    planner_row_estimate_factor: f64,
+    pub planner_row_estimate_factor: f64,
     #[serde(default, rename(deserialize = "Plan Rows"))]
-    plan_rows: u64,
+    pub plan_rows: u64,
     #[serde(default, rename(deserialize = "Plan Width"))]
-    plan_width: u64,
+    pub plan_width: u64,
     #[serde(default, rename(deserialize = "Relation Name"))]
-    relation_name: String,
+    pub relation_name: String,
     #[serde(default, rename(deserialize = "Rows Removed By Filter"))]
-    rows_removed_by_filter: u64,
+    pub rows_removed_by_filter: u64,
     #[serde(default, rename(deserialize = "Rows Removed By Index Recheck"))]
-    rows_removed_by_index_recheck: u64,
+    pub rows_removed_by_index_recheck: u64,
     #[serde(default, rename(deserialize = "Scan Direction"))]
-    scan_direction: String,
+    pub scan_direction: String,
     #[serde(default, rename(deserialize = "Schema"))]
-    schema: String,
+    pub schema: String,
     #[serde(default, rename(deserialize = "Shared Dirtied Blocks"))]
-    shared_dirtied_blocks: u64,
+    pub shared_dirtied_blocks: u64,
     #[serde(default, rename(deserialize = "Shared Hit Blocks"))]
-    shared_hit_blocks: u64,
+    pub shared_hit_blocks: u64,
     #[serde(default, rename(deserialize = "Shared Read Blocks"))]
-    shared_read_blocks: u64,
+    pub shared_read_blocks: u64,
     #[serde(default, rename(deserialize = "Shared Written Blocks"))]
-    shared_written_blocks: u64,
+    pub shared_written_blocks: u64,
     #[serde(default)]
-    slowest: bool,
+    pub slowest: bool,
     #[serde(default, rename(deserialize = "Startup Cost"))]
-    startup_cost: f64,
+    pub startup_cost: f64,
     #[serde(default, rename(deserialize = "Strategy"))]
-    strategy: String,
+    pub strategy: String,
     #[serde(default, rename(deserialize = "Temp Read Blocks"))]
-    temp_read_blocks: u64,
+    pub temp_read_blocks: u64,
     #[serde(default, rename(deserialize = "Temp Written Blocks"))]
-    temp_written_blocks: u64,
+    pub temp_written_blocks: u64,
     #[serde(default, rename(deserialize = "Total Cost"))]
-    total_cost: f64,
+    pub total_cost: f64,
     #[serde(default, rename(deserialize = "Plans"))]
-    plans: Vec<Plan>,
+    pub plans: Vec<Plan>,
 }
-
 impl fmt::Display for Plan {
     // This trait requires `fmt` with this exact signature.
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
