@@ -9,8 +9,8 @@ mod tests {
         let mut explain: Explain = explains.into_iter().nth(0).unwrap();
         println!("{:?}", explain.plan);
         explain = rustcmdpev::process_all(explain);
-        assert_eq!(explain.total_cost, 0.0);
-        assert_eq!(explain.max_cost, 0.0);
+        assert_eq!(explain.total_cost, 10.5);
+        assert_eq!(explain.max_cost, 10.5);
         assert_eq!(explain.max_rows, 0);
         assert_eq!(explain.max_duration, 0.0);
         assert_eq!(explain.execution_time, 0.0);

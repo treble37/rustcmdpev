@@ -9,13 +9,13 @@ type NodeType = String;
 type EstimateDirection = String;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-#[serde(rename_all = "PascalCase")]
 pub struct Explain {
     //TODO: add Triggers back, add default for plan?
+    #[serde(default, rename(deserialize = "Plan"))]
     pub plan: Plan,
-    #[serde(default)]
+    #[serde(default, rename(deserialize = "Planning Time"))]
     pub planning_time: f64,
-    #[serde(default)]
+    #[serde(default, rename(deserialize = "Execution Time"))]
     pub execution_time: f64,
     #[serde(default)]
     pub total_cost: f64,
@@ -30,97 +30,97 @@ pub struct Explain {
 //https://github.com/serde-rs/serde/pull/238
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Plan {
-    #[serde(default)]
+    #[serde(default, rename(deserialize = "Actual Cost"))]
     actual_cost: f64,
-    #[serde(default)]
+    #[serde(default, rename(deserialize = "Actual Duration"))]
     actual_duration: f64,
-    #[serde(default)]
+    #[serde(default, rename(deserialize = "Actual Loops"))]
     actual_loops: u64,
-    #[serde(default)]
+    #[serde(default, rename(deserialize = "Actual Rows"))]
     actual_rows: u64,
-    #[serde(default)]
+    #[serde(default, rename(deserialize = "Actual Startup Time"))]
     actual_startup_time: f64,
-    #[serde(default)]
+    #[serde(default, rename(deserialize = "Actual Total Time"))]
     actual_total_time: f64,
     #[serde(default, rename(deserialize = "Alias"))]
     alias: String,
-    #[serde(default)]
+    #[serde(default, rename(deserialize = "Costliest"))]
     costliest: bool,
-    #[serde(default)]
+    #[serde(default, rename(deserialize = "CTE Name"))]
     cte_name: String,
-    #[serde(default)]
+    #[serde(default, rename(deserialize = "Filter"))]
     filter: String,
-    #[serde(default)]
+    #[serde(default, rename(deserialize = "Group Key"))]
     group_key: Vec<String>,
-    #[serde(default)]
+    #[serde(default, rename(deserialize = "Hash Condition"))]
     hash_condition: String,
-    #[serde(default)]
+    #[serde(default, rename(deserialize = "Heap Fetches"))]
     heap_fetches: u64,
-    #[serde(default)]
+    #[serde(default, rename(deserialize = "Index Condition"))]
     index_condition: String,
-    #[serde(default)]
+    #[serde(default, rename(deserialize = "Index Name"))]
     index_name: String,
-    #[serde(default)]
+    #[serde(default, rename(deserialize = "I/O Read Time"))]
     io_read_time: f64,
-    #[serde(default)]
+    #[serde(default, rename(deserialize = "I/O Write Time"))]
     io_write_time: f64,
-    #[serde(default)]
+    #[serde(default, rename(deserialize = "Join Type"))]
     join_type: String,
     #[serde(default)]
     largest: bool,
-    #[serde(default)]
+    #[serde(default, rename(deserialize = "Local Dirtied Blocks"))]
     local_dirtied_blocks: u64,
-    #[serde(default)]
+    #[serde(default, rename(deserialize = "Local Hit Blocks"))]
     local_hit_blocks: u64,
-    #[serde(default)]
+    #[serde(default, rename(deserialize = "Local Read Blocks"))]
     local_read_blocks: u64,
-    #[serde(default)]
+    #[serde(default, rename(deserialize = "Local Written Blocks"))]
     local_written_blocks: u64,
-    #[serde(default)]
+    #[serde(default, rename(deserialize = "Node Type"))]
     node_type: NodeType,
-    #[serde(default)]
+    #[serde(default, rename(deserialize = "Output"))]
     output: Vec<String>,
-    #[serde(default)]
+    #[serde(default, rename(deserialize = "Parent Relationship"))]
     parent_relationship: String,
     #[serde(default)]
     planner_row_estimate_direction: EstimateDirection,
     #[serde(default)]
     planner_row_estimate_factor: f64,
-    #[serde(default)]
+    #[serde(default, rename(deserialize = "Plan Rows"))]
     plan_rows: u64,
-    #[serde(default)]
+    #[serde(default, rename(deserialize = "Plan Width"))]
     plan_width: u64,
-    #[serde(default)]
+    #[serde(default, rename(deserialize = "Relation Name"))]
     relation_name: String,
-    #[serde(default)]
+    #[serde(default, rename(deserialize = "Rows Removed By Filter"))]
     rows_removed_by_filter: u64,
-    #[serde(default)]
+    #[serde(default, rename(deserialize = "Rows Removed By Index Recheck"))]
     rows_removed_by_index_recheck: u64,
-    #[serde(default)]
+    #[serde(default, rename(deserialize = "Scan Direction"))]
     scan_direction: String,
-    #[serde(default)]
+    #[serde(default, rename(deserialize = "Schema"))]
     schema: String,
-    #[serde(default)]
+    #[serde(default, rename(deserialize = "Shared Dirtied Blocks"))]
     shared_dirtied_blocks: u64,
-    #[serde(default)]
+    #[serde(default, rename(deserialize = "Shared Hit Blocks"))]
     shared_hit_blocks: u64,
-    #[serde(default)]
+    #[serde(default, rename(deserialize = "Shared Read Blocks"))]
     shared_read_blocks: u64,
-    #[serde(default)]
+    #[serde(default, rename(deserialize = "Shared Written Blocks"))]
     shared_written_blocks: u64,
     #[serde(default)]
     slowest: bool,
-    #[serde(default)]
+    #[serde(default, rename(deserialize = "Startup Cost"))]
     startup_cost: f64,
-    #[serde(default)]
+    #[serde(default, rename(deserialize = "Strategy"))]
     strategy: String,
-    #[serde(default)]
+    #[serde(default, rename(deserialize = "Temp Read Blocks"))]
     temp_read_blocks: u64,
-    #[serde(default)]
+    #[serde(default, rename(deserialize = "Temp Written Blocks"))]
     temp_written_blocks: u64,
     #[serde(default, rename(deserialize = "Total Cost"))]
     total_cost: f64,
-    #[serde(default)]
+    #[serde(default, rename(deserialize = "Plans"))]
     plans: Vec<Plan>,
 }
 
