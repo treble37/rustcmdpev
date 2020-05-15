@@ -247,7 +247,6 @@ pub fn calculate_actuals(explain: Explain, plan: Plan) -> (Explain, Plan) {
     }
 
     new_explain.total_cost = new_explain.total_cost + new_plan.actual_cost;
-    println!("{:?}", new_plan.total_cost);
     new_plan.actual_duration = new_plan.actual_duration * new_plan.actual_loops as f64;
     (new_explain, new_plan)
 }
