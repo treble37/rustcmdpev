@@ -274,19 +274,20 @@ pub fn process_explain(explain: Explain) -> Explain {
     new_explain = calculate_maximums(new_explain.clone(), new_explain.plan);
     new_explain
 }
-/*
-pub fn process_explain_child_plans(explain: Explain, plan: Plan) -> (Explain, Plan) {
+
+pub fn process_explain_child_plans(explain: Explain, plans: Vec<Plan>) -> (Explain, Vec<Plan>) {
     //need to figure out how to deal with recursive process_plan
     let mut new_explain: Explain = explain;
-    for mut child_plan in plan.plans.into_iter() {
-        child_plan = calculate_planner_estimate(child_plan);
+    let mut new_plans: Vec<Plan> = plans;
+    for child_plan in new_plans.iter_mut() {
+        *child_plan = calculate_planner_estimate(child_plan.clone());
         let (e, p) = calculate_actuals(new_explain.clone(),  child_plan.clone());
         new_explain = e;
-        child_plan = p;
-        new_explain = calculate_maximums(new_explain, child_plan);
+        *child_plan = p;
+        new_explain = calculate_maximums(new_explain, child_plan.clone());
     }
-    new_explain
-}*/
+    (new_explain, new_plans)
+}
 pub fn process_all(explain: Explain) -> Explain {
     let mut new_explain: Explain = explain;
     new_explain = process_explain(new_explain.clone());
