@@ -281,7 +281,7 @@ pub fn process_explain_child_plans(explain: Explain, plans: Vec<Plan>) -> (Expla
     let mut new_plans: Vec<Plan> = plans;
     for child_plan in new_plans.iter_mut() {
         *child_plan = calculate_planner_estimate(child_plan.clone());
-        let (e, p) = calculate_actuals(new_explain.clone(),  child_plan.clone());
+        let (e, p) = calculate_actuals(new_explain.clone(), child_plan.clone());
         new_explain = e;
         *child_plan = p;
         new_explain = calculate_maximums(new_explain, child_plan.clone());
