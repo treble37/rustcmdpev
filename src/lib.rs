@@ -11,19 +11,19 @@ type EstimateDirection = String;
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Explain {
     //TODO: add Triggers back, add default for plan?
-    #[serde(default, rename(deserialize = "Plan"))]
+    #[serde(default, rename(deserialize = "Plan"), with="serde_with::json::nested")]
     pub plan: Plan,
     #[serde(default, rename(deserialize = "Planning Time"))]
     pub planning_time: f64,
     #[serde(default, rename(deserialize = "Execution Time"))]
     pub execution_time: f64,
-    #[serde(default)]
+    #[serde(default, rename(deserialize = "Total Cost"))]
     pub total_cost: f64,
-    #[serde(default)]
+    #[serde(default, rename(deserialize = "Max Rows"))]
     pub max_rows: u64,
-    #[serde(default)]
+    #[serde(default, rename(deserialize = "Max Cost"))]
     pub max_cost: f64,
-    #[serde(default)]
+    #[serde(default, rename(deserialize = "Max Duration"))]
     pub max_duration: f64,
 }
 
@@ -241,10 +241,11 @@ pub fn calculate_actuals(explain: Explain, plan: Plan) -> (Explain, Plan) {
             child_plan.actual_cost = child_plan.actual_cost - child_plan.total_cost;
         }
     }
-
+    println!("1 actual cost {:?}", new_plan.actual_cost);
     if new_plan.actual_cost < 0.0 {
         new_plan.actual_cost = 0.0;
     }
+    println!("2 actual cost {:?}", new_plan.actual_cost);
 
     new_explain.total_cost = new_explain.total_cost + new_plan.actual_cost;
     new_plan.actual_duration = new_plan.actual_duration * new_plan.actual_loops as f64;
@@ -275,7 +276,7 @@ pub fn process_explain(explain: Explain) -> Explain {
     new_explain
 }
 
-pub fn process_explain_child_plans(explain: Explain, plans: Vec<Plan>) -> (Explain, Vec<Plan>) {
+pub fn process_child_plans(explain: Explain, plans: Vec<Plan>) -> (Explain, Vec<Plan>) {
     //need to figure out how to deal with recursive process_plan
     let mut new_explain: Explain = explain;
     let mut new_plans: Vec<Plan> = plans;
@@ -285,11 +286,22 @@ pub fn process_explain_child_plans(explain: Explain, plans: Vec<Plan>) -> (Expla
         new_explain = e;
         *child_plan = p;
         new_explain = calculate_maximums(new_explain, child_plan.clone());
+        if !(child_plan.plans).is_empty() {
+            let (e, ps) = process_child_plans(new_explain.clone(), child_plan.plans.clone());
+            child_plan.plans = ps;
+            new_explain = e;
+        }
     }
     (new_explain, new_plans)
 }
+
 pub fn process_all(explain: Explain) -> Explain {
     let mut new_explain: Explain = explain;
     new_explain = process_explain(new_explain.clone());
+    if !new_explain.plan.plans.is_empty() {
+        let (e, ps) = process_child_plans(new_explain.clone(), new_explain.plan.plans.clone());
+        new_explain = e;
+        new_explain.plan.plans = ps;
+    }
     new_explain
 }
