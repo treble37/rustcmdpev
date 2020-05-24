@@ -11,7 +11,11 @@ type EstimateDirection = String;
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Explain {
     //TODO: add Triggers back, add default for plan?
-    #[serde(default, rename(deserialize = "Plan"), with="serde_with::json::nested")]
+    #[serde(
+        default,
+        rename(deserialize = "Plan"),
+        with = "serde_with::json::nested"
+    )]
     pub plan: Plan,
     #[serde(default, rename(deserialize = "Planning Time"))]
     pub planning_time: f64,
@@ -120,7 +124,11 @@ pub struct Plan {
     pub temp_written_blocks: u64,
     #[serde(default, rename(deserialize = "Total Cost"))]
     pub total_cost: f64,
-    #[serde(default, rename(deserialize = "Plans"))]
+    #[serde(
+        default,
+        rename(deserialize = "Plans"),
+        with = "serde_with::json::nested"
+    )]
     pub plans: Vec<Plan>,
 }
 impl fmt::Display for Plan {
