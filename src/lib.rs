@@ -9,6 +9,39 @@ type NodeType = String;
 type EstimateDirection = String;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Wheel {
+    #[serde(default, rename(deserialize = "Car"))]
+    pub car: Car,
+    #[serde(default, rename(deserialize = "Wheel Diameter"))]
+    pub wheel_diameter: f64,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Car {
+    #[serde(default, rename(deserialize = "Dealer Price"))]
+    pub dealer_price: f64,
+    #[serde(default, rename(deserialize = "Cars"))]
+    pub cars: Vec<Car>,
+}
+impl Default for Wheel {
+    fn default() -> Wheel {
+        Wheel {
+            car: Car {
+                ..Default::default()
+            },
+            wheel_diameter: 5.0,
+        }
+    }
+}
+impl Default for Car {
+    fn default() -> Car {
+        Car {
+            dealer_price: 1.0,
+            cars: Vec::new(),
+        }
+    }
+}
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Explain {
     //TODO: add Triggers back, add default for plan?
     #[serde(
@@ -124,11 +157,7 @@ pub struct Plan {
     pub temp_written_blocks: u64,
     #[serde(default, rename(deserialize = "Total Cost"))]
     pub total_cost: f64,
-    #[serde(
-        default,
-        rename(deserialize = "Plans"),
-        with = "serde_with::json::nested"
-    )]
+    #[serde(default, rename(deserialize = "Plans"))]
     pub plans: Vec<Plan>,
 }
 impl fmt::Display for Plan {
