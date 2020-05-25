@@ -34,95 +34,259 @@ pub struct Explain {
 //https://github.com/serde-rs/serde/pull/238
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Plan {
-    #[serde(default, rename(deserialize = "Actual Cost"))]
+    #[serde(
+        default,
+        rename(deserialize = "Actual Cost"),
+        with = "serde_with::json::nested"
+    )]
     pub actual_cost: f64,
-    #[serde(default, rename(deserialize = "Actual Duration"))]
+    #[serde(
+        default,
+        rename(deserialize = "Actual Duration"),
+        with = "serde_with::json::nested"
+    )]
     pub actual_duration: f64,
-    #[serde(default, rename(deserialize = "Actual Loops"))]
+    #[serde(
+        default,
+        rename(deserialize = "Actual Loops"),
+        with = "serde_with::json::nested"
+    )]
     pub actual_loops: u64,
-    #[serde(default, rename(deserialize = "Actual Rows"))]
+    #[serde(
+        default,
+        rename(deserialize = "Actual Rows"),
+        with = "serde_with::json::nested"
+    )]
     pub actual_rows: u64,
-    #[serde(default, rename(deserialize = "Actual Startup Time"))]
+    #[serde(
+        default,
+        rename(deserialize = "Actual Startup Time"),
+        with = "serde_with::json::nested"
+    )]
     pub actual_startup_time: f64,
-    #[serde(default, rename(deserialize = "Actual Total Time"))]
+    #[serde(
+        default,
+        rename(deserialize = "Actual Total Time"),
+        with = "serde_with::json::nested"
+    )]
     pub actual_total_time: f64,
-    #[serde(default, rename(deserialize = "Alias"))]
+    #[serde(
+        default,
+        rename(deserialize = "Alias"),
+        with = "serde_with::json::nested"
+    )]
     pub alias: String,
-    #[serde(default, rename(deserialize = "Costliest"))]
+    #[serde(
+        default,
+        rename(deserialize = "Costliest"),
+        with = "serde_with::json::nested"
+    )]
     pub costliest: bool,
-    #[serde(default, rename(deserialize = "CTE Name"))]
+    #[serde(
+        default,
+        rename(deserialize = "CTE Name"),
+        with = "serde_with::json::nested"
+    )]
     pub cte_name: String,
-    #[serde(default, rename(deserialize = "Filter"))]
+    #[serde(
+        default,
+        rename(deserialize = "Filter"),
+        with = "serde_with::json::nested"
+    )]
     pub filter: String,
-    #[serde(default, rename(deserialize = "Group Key"))]
+    #[serde(
+        default,
+        rename(deserialize = "Group Key"),
+        with = "serde_with::json::nested"
+    )]
     pub group_key: Vec<String>,
-    #[serde(default, rename(deserialize = "Hash Condition"))]
+    #[serde(
+        default,
+        rename(deserialize = "Hash Condition"),
+        with = "serde_with::json::nested"
+    )]
     pub hash_condition: String,
-    #[serde(default, rename(deserialize = "Heap Fetches"))]
+    #[serde(
+        default,
+        rename(deserialize = "Heap Fetches"),
+        with = "serde_with::json::nested"
+    )]
     pub heap_fetches: u64,
-    #[serde(default, rename(deserialize = "Index Condition"))]
+    #[serde(
+        default,
+        rename(deserialize = "Index Condition"),
+        with = "serde_with::json::nested"
+    )]
     pub index_condition: String,
-    #[serde(default, rename(deserialize = "Index Name"))]
+    #[serde(
+        default,
+        rename(deserialize = "Index Name"),
+        with = "serde_with::json::nested"
+    )]
     pub index_name: String,
-    #[serde(default, rename(deserialize = "I/O Read Time"))]
+    #[serde(
+        default,
+        rename(deserialize = "I/O Read Time"),
+        with = "serde_with::json::nested"
+    )]
     pub io_read_time: f64,
-    #[serde(default, rename(deserialize = "I/O Write Time"))]
+    #[serde(
+        default,
+        rename(deserialize = "I/O Write Time"),
+        with = "serde_with::json::nested"
+    )]
     pub io_write_time: f64,
-    #[serde(default, rename(deserialize = "Join Type"))]
+    #[serde(
+        default,
+        rename(deserialize = "Join Type"),
+        with = "serde_with::json::nested"
+    )]
     pub join_type: String,
     #[serde(default)]
     pub largest: bool,
-    #[serde(default, rename(deserialize = "Local Dirtied Blocks"))]
+    #[serde(
+        default,
+        rename(deserialize = "Local Dirtied Blocks"),
+        with = "serde_with::json::nested"
+    )]
     pub local_dirtied_blocks: u64,
-    #[serde(default, rename(deserialize = "Local Hit Blocks"))]
+    #[serde(
+        default,
+        rename(deserialize = "Local Hit Blocks"),
+        with = "serde_with::json::nested"
+    )]
     pub local_hit_blocks: u64,
-    #[serde(default, rename(deserialize = "Local Read Blocks"))]
+    #[serde(
+        default,
+        rename(deserialize = "Local Read Blocks"),
+        with = "serde_with::json::nested"
+    )]
     pub local_read_blocks: u64,
-    #[serde(default, rename(deserialize = "Local Written Blocks"))]
+    #[serde(
+        default,
+        rename(deserialize = "Local Written Blocks"),
+        with = "serde_with::json::nested"
+    )]
     pub local_written_blocks: u64,
-    #[serde(default, rename(deserialize = "Node Type"))]
+    #[serde(
+        default,
+        rename(deserialize = "Node Type"),
+        with = "serde_with::json::nested"
+    )]
     pub node_type: NodeType,
-    #[serde(default, rename(deserialize = "Output"))]
+    #[serde(
+        default,
+        rename(deserialize = "Output"),
+        with = "serde_with::json::nested"
+    )]
     pub output: Vec<String>,
-    #[serde(default, rename(deserialize = "Parent Relationship"))]
+    #[serde(
+        default,
+        rename(deserialize = "Parent Relationship"),
+        with = "serde_with::json::nested"
+    )]
     pub parent_relationship: String,
     #[serde(default)]
     pub planner_row_estimate_direction: EstimateDirection,
     #[serde(default)]
     pub planner_row_estimate_factor: f64,
-    #[serde(default, rename(deserialize = "Plan Rows"))]
+    #[serde(
+        default,
+        rename(deserialize = "Plan Rows"),
+        with = "serde_with::json::nested"
+    )]
     pub plan_rows: u64,
-    #[serde(default, rename(deserialize = "Plan Width"))]
+    #[serde(
+        default,
+        rename(deserialize = "Plan Width"),
+        with = "serde_with::json::nested"
+    )]
     pub plan_width: u64,
-    #[serde(default, rename(deserialize = "Relation Name"))]
+    #[serde(
+        default,
+        rename(deserialize = "Relation Name"),
+        with = "serde_with::json::nested"
+    )]
     pub relation_name: String,
-    #[serde(default, rename(deserialize = "Rows Removed By Filter"))]
+    #[serde(
+        default,
+        rename(deserialize = "Rows Removed By Filter"),
+        with = "serde_with::json::nested"
+    )]
     pub rows_removed_by_filter: u64,
-    #[serde(default, rename(deserialize = "Rows Removed By Index Recheck"))]
+    #[serde(
+        default,
+        rename(deserialize = "Rows Removed By Index Recheck"),
+        with = "serde_with::json::nested"
+    )]
     pub rows_removed_by_index_recheck: u64,
-    #[serde(default, rename(deserialize = "Scan Direction"))]
+    #[serde(
+        default,
+        rename(deserialize = "Scan Direction"),
+        with = "serde_with::json::nested"
+    )]
     pub scan_direction: String,
-    #[serde(default, rename(deserialize = "Schema"))]
+    #[serde(
+        default,
+        rename(deserialize = "Schema"),
+        with = "serde_with::json::nested"
+    )]
     pub schema: String,
-    #[serde(default, rename(deserialize = "Shared Dirtied Blocks"))]
+    #[serde(
+        default,
+        rename(deserialize = "Shared Dirtied Blocks"),
+        with = "serde_with::json::nested"
+    )]
     pub shared_dirtied_blocks: u64,
-    #[serde(default, rename(deserialize = "Shared Hit Blocks"))]
+    #[serde(
+        default,
+        rename(deserialize = "Shared Hit Blocks"),
+        with = "serde_with::json::nested"
+    )]
     pub shared_hit_blocks: u64,
-    #[serde(default, rename(deserialize = "Shared Read Blocks"))]
+    #[serde(
+        default,
+        rename(deserialize = "Shared Read Blocks"),
+        with = "serde_with::json::nested"
+    )]
     pub shared_read_blocks: u64,
-    #[serde(default, rename(deserialize = "Shared Written Blocks"))]
+    #[serde(
+        default,
+        rename(deserialize = "Shared Written Blocks"),
+        with = "serde_with::json::nested"
+    )]
     pub shared_written_blocks: u64,
     #[serde(default)]
     pub slowest: bool,
-    #[serde(default, rename(deserialize = "Startup Cost"))]
+    #[serde(
+        default,
+        rename(deserialize = "Startup Cost"),
+        with = "serde_with::json::nested"
+    )]
     pub startup_cost: f64,
-    #[serde(default, rename(deserialize = "Strategy"))]
+    #[serde(
+        default,
+        rename(deserialize = "Strategy"),
+        with = "serde_with::json::nested"
+    )]
     pub strategy: String,
-    #[serde(default, rename(deserialize = "Temp Read Blocks"))]
+    #[serde(
+        default,
+        rename(deserialize = "Temp Read Blocks"),
+        with = "serde_with::json::nested"
+    )]
     pub temp_read_blocks: u64,
-    #[serde(default, rename(deserialize = "Temp Written Blocks"))]
+    #[serde(
+        default,
+        rename(deserialize = "Temp Written Blocks"),
+        with = "serde_with::json::nested"
+    )]
     pub temp_written_blocks: u64,
-    #[serde(default, rename(deserialize = "Total Cost"))]
+    #[serde(
+        default,
+        rename(deserialize = "Total Cost"),
+        with = "serde_with::json::nested"
+    )]
     pub total_cost: f64,
     #[serde(
         default,
@@ -131,6 +295,7 @@ pub struct Plan {
     )]
     pub plans: Vec<Plan>,
 }
+
 impl fmt::Display for Plan {
     // This trait requires `fmt` with this exact signature.
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
