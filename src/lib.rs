@@ -8,6 +8,7 @@ const CTE_SCAN: &str = "CTE Scan";
 type NodeType = String;
 type EstimateDirection = String;
 
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Wheel {
     #[serde(default, rename(deserialize = "Car"))]
@@ -21,7 +22,12 @@ pub struct Car {
     #[serde(default, rename(deserialize = "Dealer Price"))]
     pub dealer_price: f64,
     #[serde(default, rename(deserialize = "Cars"))]
-    pub cars: Vec<Car>,
+    pub cars: Vec<Vehicle>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub enum Vehicle {
+    Car(Car),
 }
 impl Default for Wheel {
     fn default() -> Wheel {
