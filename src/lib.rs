@@ -269,6 +269,17 @@ pub fn calculate_maximums(explain: Explain, plan: Plan) -> Explain {
     new_explain
 }
 
+pub fn calculate_outlier_nodes(explain: Explain, plan: Plan) -> Plan {
+    let mut new_plan: Plan = plan;
+    new_plan.costliest = new_plan.actual_cost == explain.max_cost;
+    new_plan.largest = new_plan.actual_rows == explain.max_rows;
+    new_plan.slowest = new_plan.actual_duration == explain.max_duration;
+    for child_plan in new_plan.plans.iter_mut() {
+       *child_plan = calculate_outlier_nodes(explain.clone(), child_plan.clone());
+    }
+    new_plan
+}
+
 pub fn process_explain(explain: Explain) -> Explain {
     let mut new_explain: Explain = explain;
     new_explain.plan = calculate_planner_estimate(new_explain.plan);
