@@ -10,44 +10,6 @@ type EstimateDirection = String;
 
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct Wheel {
-    #[serde(default, rename(deserialize = "Car"))]
-    pub car: Car,
-    #[serde(default, rename(deserialize = "Wheel Diameter"))]
-    pub wheel_diameter: f64,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct Car {
-    #[serde(default, rename(deserialize = "Dealer Price"))]
-    pub dealer_price: f64,
-    #[serde(default, rename(deserialize = "Cars"))]
-    pub cars: Vec<Vehicle>,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub enum Vehicle {
-    Car(Car),
-}
-impl Default for Wheel {
-    fn default() -> Wheel {
-        Wheel {
-            car: Car {
-                ..Default::default()
-            },
-            wheel_diameter: 5.0,
-        }
-    }
-}
-impl Default for Car {
-    fn default() -> Car {
-        Car {
-            dealer_price: 1.0,
-            cars: Vec::new(),
-        }
-    }
-}
-#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Explain {
     //TODO: add Triggers back, add default for plan?
     #[serde(
