@@ -40,7 +40,7 @@ mod tests {
     }
     #[test]
     fn test_jesus_wheel() {
-        let str_input = r#"[{"Wheel Diameter":5.2, "Car":{"Dealer Price": 500.0, "Cars":[{"Car":{"Dealer Price":1500.0}}]}}]"#;
+        let str_input = r#"[{"Wheel Diameter":5.2, "Car":{"Dealer Price": 500.0, "Cars":[{"Car":{"Dealer Price":1500.0, "Cars":[{"Car":{"Dealer Price":1400.0}}]}}]}}]"#;
         let cars: Vec<Wheel> = serde_json::from_str(str_input).unwrap();
         println!("cars {:?}", cars);
     }
