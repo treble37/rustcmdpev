@@ -321,7 +321,7 @@ pub fn process_child_plans(explain: Explain, plans: Vec<Plan>) -> (Explain, Vec<
     //need to figure out how to deal with recursive process_plan
     let mut new_explain: Explain = explain;
     let mut new_plans: Vec<Plan> = plans;
-    for child_plan in new_plans.iter_mut() {
+    for mut child_plan in new_plans.iter_mut() {
         *child_plan = calculate_planner_estimate(child_plan.clone());
         let (e, p) = calculate_actuals(new_explain.clone(), child_plan.clone());
         new_explain = e;
