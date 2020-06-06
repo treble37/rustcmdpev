@@ -53,7 +53,6 @@ pub struct Explain {
     #[serde(
         default,
         rename(deserialize = "Plan"),
-        with = "serde_with::json::nested"
     )]
     pub plan: Plan,
     #[serde(default, rename(deserialize = "Planning Time"))]
@@ -178,6 +177,7 @@ impl fmt::Display for Plan {
     }
 }
 
+
 impl Default for Plan {
     fn default() -> Plan {
         Plan {
@@ -278,17 +278,15 @@ pub fn calculate_actuals(explain: Explain, plan: Plan) -> (Explain, Plan) {
     let mut new_explain: Explain = explain;
     new_plan.actual_duration = new_plan.actual_total_time;
     new_plan.actual_cost = new_plan.total_cost;
-    for mut child_plan in new_plan.plans.iter_mut() {
+    for child_plan in new_plan.plans.iter() {
         if child_plan.node_type != CTE_SCAN {
-            child_plan.actual_duration = child_plan.actual_duration - child_plan.actual_total_time;
-            child_plan.actual_cost = child_plan.actual_cost - child_plan.total_cost;
+            new_plan.actual_duration = new_plan.actual_duration - child_plan.actual_total_time;
+            new_plan.actual_cost = new_plan.actual_cost - child_plan.total_cost;
         }
     }
-    println!("1 actual cost {:?}", new_plan.actual_cost);
     if new_plan.actual_cost < 0.0 {
         new_plan.actual_cost = 0.0;
     }
-    println!("2 actual cost {:?}", new_plan.actual_cost);
 
     new_explain.total_cost = new_explain.total_cost + new_plan.actual_cost;
     new_plan.actual_duration = new_plan.actual_duration * new_plan.actual_loops as f64;
