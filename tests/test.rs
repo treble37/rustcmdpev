@@ -170,14 +170,14 @@ mod tests {
         assert_eq!(explain.total_cost, 25.1);
         assert_eq!(explain.max_cost, 13.31);
         assert_eq!(explain.max_rows, 231);
-        assert_eq!(explain.max_duration, 0.18);
-        assert_eq!(explain.execution_time, 0.0);
-        assert_eq!(explain.planning_time, 0.0);
-        assert_eq!(explain.plan.alias, "c0");
-        assert_eq!(explain.plan.node_type, "Seq Scan");
-        assert_eq!(explain.plan.plan_rows, 50);
-        assert_eq!(explain.plan.plan_width, 1572);
-        assert_eq!(explain.plan.relation_name, "coaches");
+        assert_eq!(explain.max_duration, 1.147);
+        assert_eq!(explain.execution_time, 2.776);
+        assert_eq!(explain.planning_time, 8.116);
+        assert_eq!(explain.plan.alias, "");
+        assert_eq!(explain.plan.node_type, "Hash Join");
+        assert_eq!(explain.plan.plan_rows, 231);
+        assert_eq!(explain.plan.plan_width, 1639);
+        assert_eq!(explain.plan.relation_name, "");
     }
     #[test]
     #[ignore]
