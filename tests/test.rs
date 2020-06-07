@@ -125,9 +125,7 @@ mod tests {
                 "Execution Time": 2.776
               }
             ]"#;
-        let explains: Vec<Explain> = serde_json::from_str(input).unwrap();
-        let mut explain: Explain = explains.into_iter().nth(0).unwrap();
-        explain = rustcmdpev::process_all(explain);
+        let explain: Explain = rustcmdpev::visualize(input.to_string(), 60);
         assert_eq!(explain.total_cost, 25.1);
         assert_eq!(explain.max_cost, 13.31);
         assert_eq!(explain.max_rows, 231);

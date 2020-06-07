@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use colored::*;
 use std::fmt;
 
 const UNDER: &str = "Under";
@@ -8,14 +9,10 @@ const CTE_SCAN: &str = "CTE Scan";
 type NodeType = String;
 type EstimateDirection = String;
 
-
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Explain {
     //TODO: add Triggers back, add default for plan?
-    #[serde(
-        default,
-        rename(deserialize = "Plan"),
-    )]
+    #[serde(default, rename(deserialize = "Plan"))]
     pub plan: Plan,
     #[serde(default, rename(deserialize = "Planning Time"))]
     pub planning_time: f64,
@@ -138,7 +135,6 @@ impl fmt::Display for Plan {
         write!(f, "{}", self)
     }
 }
-
 
 impl Default for Plan {
     fn default() -> Plan {
@@ -275,12 +271,12 @@ pub fn calculate_outlier_nodes(explain: Explain, plan: Plan) -> Plan {
     new_plan.largest = new_plan.actual_rows == explain.max_rows;
     new_plan.slowest = new_plan.actual_duration == explain.max_duration;
     for child_plan in new_plan.plans.iter_mut() {
-       *child_plan = calculate_outlier_nodes(explain.clone(), child_plan.clone());
+        *child_plan = calculate_outlier_nodes(explain.clone(), child_plan.clone());
     }
     new_plan
 }
 
-pub fn process_explain(explain: Explain) -> Explain {
+fn process_explain(explain: Explain) -> Explain {
     let mut new_explain: Explain = explain;
     new_explain.plan = calculate_planner_estimate(new_explain.plan);
     let (e, p) = calculate_actuals(new_explain.clone(), new_explain.clone().plan);
@@ -290,7 +286,7 @@ pub fn process_explain(explain: Explain) -> Explain {
     new_explain
 }
 
-pub fn process_child_plans(explain: Explain, plans: Vec<Plan>) -> (Explain, Vec<Plan>) {
+fn process_child_plans(explain: Explain, plans: Vec<Plan>) -> (Explain, Vec<Plan>) {
     //need to figure out how to deal with recursive process_plan
     let mut new_explain: Explain = explain;
     let mut new_plans: Vec<Plan> = plans;
@@ -318,4 +314,31 @@ pub fn process_all(explain: Explain) -> Explain {
         new_explain.plan.plans = ps;
     }
     new_explain
+}
+
+fn duration_to_string(value: f64) -> colored::ColoredString {
+	if value < 100.0 {
+		return format!("{0:.2} ms", value).green()
+	} else if value < 1000.0 {
+		return format!("{0:.2} ms", value).yellow()
+	} else if value < 60000.0 {
+		return format!("{0:.2} s", value/2000.0).red()
+	} else {
+		return format!("{0:.2} m", value/60000.0).red()
+	}
+}
+
+pub fn write_explain(explain: Explain, width: i32) {
+    println!("○ Total Cost {}", explain.total_cost);
+    println!("○ Planning Time: {}", duration_to_string(explain.planning_time));
+    println!("○ Execution Time: {}", duration_to_string(explain.execution_time));
+    println!("{}\n", "┬".cyan());
+}
+
+pub fn visualize(input: String, width: i32) -> Explain {
+    let explains: Vec<Explain> = serde_json::from_str(input.as_str()).unwrap();
+    let mut explain: Explain = explains.into_iter().nth(0).unwrap();
+    explain = process_all(explain);
+    write_explain(explain.clone(), width);
+    explain
 }

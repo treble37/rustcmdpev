@@ -10,6 +10,7 @@ edition = "2018"
 serde = { version = "1.0", features = ["derive"] }
 serde_with = { version = "1.4.0", features = ["json"] }
 serde_json = "1.0"
+colored = "1.9"
 
 [[bin]]
 name = "rustcmdpev"
