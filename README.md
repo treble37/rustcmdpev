@@ -19,7 +19,3 @@ cargo run -- '[{"Plan":{"Alias":"c0"}}]'
 To see output from print statements, run with nocapture flag:
 
 `cargo test -- --nocapture`
-
-### Todos
-
-- [ ] Add back Triggers struct in Explain

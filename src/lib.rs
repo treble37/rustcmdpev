@@ -285,7 +285,7 @@ pub fn calculate_maximums(explain: Explain, plan: Plan) -> Explain {
 }
 
 pub fn calculate_outlier_nodes(explain: Explain, plan: Plan) -> Plan {
-    let mut new_plan: Plan = plan;
+    let mut new_plan: Plan = plan.clone();
     new_plan.costliest = new_plan.actual_cost == explain.max_cost;
     new_plan.largest = new_plan.actual_rows == explain.max_rows;
     new_plan.slowest = new_plan.actual_duration == explain.max_duration;
@@ -331,6 +331,8 @@ pub fn process_all(explain: Explain) -> Explain {
         new_explain = e;
         new_explain.plan.plans = ps;
     }
+    let outlier_plan: Plan = calculate_outlier_nodes(new_explain.clone(), new_explain.clone().plan);
+    new_explain.plan = outlier_plan;
     new_explain
 }
 
@@ -377,6 +379,7 @@ pub fn color_format(s: String, format: &str) -> colored::ColoredString {
         "warning" => s.yellow(),
         "critical" => s.red(),
         "output" => s.cyan(),
+        "tag" => s.on_bright_red().bright_white(),
         _ => s.green(),
     }
 }
@@ -414,7 +417,6 @@ fn format_tags(plan: Plan) -> String {
     if plan.planner_row_estimate_factor >= 100.0 {
         tags.push(" bad estimate ");
     }
-
     return tags.join(" ");
 }
 
@@ -433,6 +435,10 @@ fn get_terminator(index: usize, plan: Plan) -> String {
         }
     }
 }
+pub fn format_percent(number: f64, precision: usize) -> String {
+    return format!("{:.1$}%", number, precision);
+}
+
 pub fn write_plan(
     explain: Explain,
     plan: &Plan,
@@ -454,8 +460,8 @@ pub fn write_plan(
         color_format(current_prefix.clone(), "prefix"),
         color_format(joint + "─⌠", "prefix"),
         color_format(plan.clone().node_type, "bold"),
-        format_details(plan.clone()),
-        format_tags(plan.clone())
+        color_format(format_details(plan.clone()), "muted"),
+        color_format(format_tags(plan.clone()), "tag")
     );
 
     if plan.plans.len() > 1 || last_child {
@@ -482,13 +488,13 @@ pub fn write_plan(
         "{}○ Duration: {} {}",
         color_format(current_prefix.clone(), "prefix"),
         duration_to_string(plan.actual_duration),
-        (plan.actual_duration / explain.execution_time) * 100.0
+        format_percent((plan.actual_duration / explain.execution_time) * 100.0, 1)
     );
     println!(
         "{}○ Cost: {} {}",
         color_format(current_prefix.clone(), "prefix"),
         plan.actual_cost,
-        (plan.actual_cost / explain.total_cost) * 100.0
+        format_percent((plan.actual_cost / explain.total_cost) * 100.0, 1)
     );
     println!(
         "{}○ Rows: {}",
@@ -562,7 +568,7 @@ pub fn write_plan(
     if plan.planner_row_estimate_factor != 0.0 {
         //outputFn("%v %vestimated %v %.2fx", mutedFormat("rows"), plan.PlannerRowEstimateDirection, mutedFormat("by"), plan.PlannerRowEstimateFactor)
         println!(
-            "{}{} {}estimated {} {}x",
+            "{}{} {}estimated {} {:.2}x",
             color_format(current_prefix.clone(), "prefix"),
             color_format("rows".to_string(), "muted"),
             plan.planner_row_estimate_direction,
@@ -581,7 +587,7 @@ pub fn write_plan(
             println!(
                 "{}{}",
                 color_format(current_prefix.clone(), "prefix"),
-                color_format(get_terminator(index, plan.clone()) + line, "prefix")
+                color_format(get_terminator(index, plan.clone()) + line, "output")
             )
         }
     }
