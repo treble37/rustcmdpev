@@ -138,4 +138,10 @@ mod tests {
         assert_eq!(explain.plan.plan_width, 1639);
         assert_eq!(explain.plan.relation_name, "");
     }
+    #[test]
+    fn test_with_missing_node_type_plan_field() {
+        let input = r#"[{"Plan": {"Alias": "c0"}}]"#;
+        let explain: Explain = rustcmdpev::visualize(input.to_string(), 60);
+        assert_eq!(explain.total_cost, 0.0);
+    }
 }

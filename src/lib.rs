@@ -26,6 +26,7 @@ static DESCRIPTIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "Bitmap Heap Scan" =>  "Searches through the pages returned by the Bitmap Index Scan for relevant rows.",
     "Bitmap Index Scan" => "Uses a Bitmap Index (index which uses 1 bit per page) to find all relevant pages. Results of this node are fed to the Bitmap Heap Scan.",
     "CTE Scan" =>         "Performs a sequential scan of Common Table Expression (CTE) query results. Note that results of a CTE are materialized (calculated and temporarily stored).",
+    "" => "" // handle case where key isn't populated in initial input
 };
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
