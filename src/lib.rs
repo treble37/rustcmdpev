@@ -7,6 +7,7 @@ const UNDER: &str = "Under";
 const OVER: &str = "Over";
 const CTE_SCAN: &str = "CTE Scan";
 
+const DELTA_ERROR: f64 = 0.001;
 
 static DESCRIPTIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "Append" =>          "Used in a UNION to merge multiple record sets by appending them together.",
@@ -125,9 +126,9 @@ pub fn calculate_maximums(explain: Explain, plan: plan::Plan) -> Explain {
 
 pub fn calculate_outlier_nodes(explain: Explain, plan: plan::Plan) -> plan::Plan {
     let mut new_plan: plan::Plan = plan.clone();
-    new_plan.costliest = new_plan.actual_cost == explain.max_cost;
-    new_plan.largest = new_plan.actual_rows == explain.max_rows;
-    new_plan.slowest = new_plan.actual_duration == explain.max_duration;
+    new_plan.costliest = (new_plan.actual_cost - explain.max_cost).abs() < DELTA_ERROR;
+    new_plan.largest = (new_plan.actual_rows - explain.max_rows) == 0;
+    new_plan.slowest = (new_plan.actual_duration - explain.max_duration).abs() < DELTA_ERROR;
     for child_plan in new_plan.plans.iter_mut() {
         *child_plan = calculate_outlier_nodes(explain.clone(), child_plan.clone());
     }
