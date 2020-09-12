@@ -1,7 +1,7 @@
 use colored::*;
 use phf::phf_map;
 use serde::{Deserialize, Serialize};
-mod protocol;
+mod plan;
 
 const UNDER: &str = "Under";
 const OVER: &str = "Over";
@@ -31,7 +31,7 @@ static DESCRIPTIONS: phf::Map<&'static str, &'static str> = phf_map! {
 pub struct Explain {
     //TODO: add Triggers back, add default for plan?
     #[serde(default, rename(deserialize = "Plan"))]
-    pub plan: protocol::Plan,
+    pub plan: plan::Plan,
     #[serde(default, rename(deserialize = "Planning Time"))]
     pub planning_time: f64,
     #[serde(default, rename(deserialize = "Execution Time"))]
@@ -50,7 +50,7 @@ pub struct Explain {
 impl Default for Explain {
     fn default() -> Explain {
         Explain {
-            plan: protocol::Plan {
+            plan: plan::Plan {
                 ..Default::default()
             },
             planning_time: 0.0,
@@ -64,8 +64,8 @@ impl Default for Explain {
 }
 
 // https://www.forrestthewoods.com/blog/should-small-rust-structs-be-passed-by-copy-or-by-borrow/
-pub fn calculate_planner_estimate(plan: protocol::Plan) -> protocol::Plan {
-    let mut new_plan: protocol::Plan = plan;
+pub fn calculate_planner_estimate(plan: plan::Plan) -> plan::Plan {
+    let mut new_plan: plan::Plan = plan;
     new_plan.planner_row_estimate_factor = 0.0;
 
     if new_plan.plan_rows == new_plan.actual_rows {
@@ -89,8 +89,8 @@ pub fn calculate_planner_estimate(plan: protocol::Plan) -> protocol::Plan {
     new_plan
 }
 
-pub fn calculate_actuals(explain: Explain, plan: protocol::Plan) -> (Explain, protocol::Plan) {
-    let mut new_plan: protocol::Plan = plan;
+pub fn calculate_actuals(explain: Explain, plan: plan::Plan) -> (Explain, plan::Plan) {
+    let mut new_plan: plan::Plan = plan;
     let mut new_explain: Explain = explain;
     new_plan.actual_duration = new_plan.actual_total_time;
     new_plan.actual_cost = new_plan.total_cost;
@@ -109,7 +109,7 @@ pub fn calculate_actuals(explain: Explain, plan: protocol::Plan) -> (Explain, pr
     (new_explain, new_plan)
 }
 
-pub fn calculate_maximums(explain: Explain, plan: protocol::Plan) -> Explain {
+pub fn calculate_maximums(explain: Explain, plan: plan::Plan) -> Explain {
     let mut new_explain: Explain = explain;
     if new_explain.max_rows < plan.actual_rows {
         new_explain.max_rows = plan.actual_rows
@@ -123,8 +123,8 @@ pub fn calculate_maximums(explain: Explain, plan: protocol::Plan) -> Explain {
     new_explain
 }
 
-pub fn calculate_outlier_nodes(explain: Explain, plan: protocol::Plan) -> protocol::Plan {
-    let mut new_plan: protocol::Plan = plan.clone();
+pub fn calculate_outlier_nodes(explain: Explain, plan: plan::Plan) -> plan::Plan {
+    let mut new_plan: plan::Plan = plan.clone();
     new_plan.costliest = new_plan.actual_cost == explain.max_cost;
     new_plan.largest = new_plan.actual_rows == explain.max_rows;
     new_plan.slowest = new_plan.actual_duration == explain.max_duration;
@@ -144,9 +144,9 @@ fn process_explain(explain: Explain) -> Explain {
     new_explain
 }
 
-fn process_child_plans(explain: Explain, plans: Vec<protocol::Plan>) -> (Explain, Vec<protocol::Plan>) {
+fn process_child_plans(explain: Explain, plans: Vec<plan::Plan>) -> (Explain, Vec<plan::Plan>) {
     let mut new_explain: Explain = explain;
-    let mut new_plans: Vec<protocol::Plan> = plans;
+    let mut new_plans: Vec<plan::Plan> = plans;
     for mut child_plan in new_plans.iter_mut() {
         *child_plan = calculate_planner_estimate(child_plan.clone());
         let (e, p) = calculate_actuals(new_explain.clone(), child_plan.clone());
@@ -170,7 +170,7 @@ pub fn process_all(explain: Explain) -> Explain {
         new_explain = e;
         new_explain.plan.plans = ps;
     }
-    let outlier_plan: protocol::Plan = calculate_outlier_nodes(new_explain.clone(), new_explain.clone().plan);
+    let outlier_plan: plan::Plan = calculate_outlier_nodes(new_explain.clone(), new_explain.clone().plan);
     new_explain.plan = outlier_plan;
     new_explain
 }
@@ -198,7 +198,7 @@ pub fn write_explain(explain: Explain, width: usize) {
         duration_to_string(explain.execution_time)
     );
     println!("{}", color_format("┬".to_string(), "output"));
-    let p: protocol::Plan = explain.clone().plan;
+    let p: plan::Plan = explain.clone().plan;
     write_plan(
         explain.clone(),
         &p,
@@ -223,7 +223,7 @@ pub fn color_format(s: String, format: &str) -> colored::ColoredString {
     }
 }
 
-fn format_details(plan: protocol::Plan) -> String {
+fn format_details(plan: plan::Plan) -> String {
     let mut details = vec![];
 
     if plan.scan_direction != "" {
@@ -241,7 +241,7 @@ fn format_details(plan: protocol::Plan) -> String {
     return "".to_string();
 }
 
-fn format_tags(plan: protocol::Plan) -> String {
+fn format_tags(plan: plan::Plan) -> String {
     let mut tags = vec![];
 
     if plan.slowest {
@@ -259,7 +259,7 @@ fn format_tags(plan: protocol::Plan) -> String {
     return tags.join(" ");
 }
 
-fn get_terminator(index: usize, plan: protocol::Plan) -> String {
+fn get_terminator(index: usize, plan: plan::Plan) -> String {
     if index == 0 {
         if plan.plans.len() == 0 {
             return "⌡► ".to_string();
@@ -280,7 +280,7 @@ pub fn format_percent(number: f64, precision: usize) -> String {
 
 pub fn write_plan(
     explain: Explain,
-    plan: &protocol::Plan,
+    plan: &plan::Plan,
     prefix: String,
     depth: i32,
     width: usize,
