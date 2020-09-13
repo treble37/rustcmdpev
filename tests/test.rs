@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use rustcmdpev::*;
+    use rustcmdpev::explain;
     #[test]
     fn test_explain_with_one_join() {
         let input = r#"
@@ -125,7 +125,7 @@ mod tests {
                 "Execution Time": 2.776
               }
             ]"#;
-        let explain: Explain = rustcmdpev::visualize(input.to_string(), 60);
+        let explain: explain::Explain = rustcmdpev::visualize(input.to_string(), 60);
         assert_eq!(explain.total_cost, 25.1);
         assert_eq!(explain.max_cost, 13.31);
         assert_eq!(explain.max_rows, 231);
@@ -141,7 +141,7 @@ mod tests {
     #[test]
     fn test_with_missing_node_type_plan_field() {
         let input = r#"[{"Plan": {"Alias": "c0"}}]"#;
-        let explain: Explain = rustcmdpev::visualize(input.to_string(), 60);
+        let explain: explain::Explain = rustcmdpev::visualize(input.to_string(), 60);
         assert_eq!(explain.total_cost, 0.0);
     }
 }

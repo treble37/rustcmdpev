@@ -1,7 +1,7 @@
 use colored::*;
 use phf::phf_map;
-use serde::{Deserialize, Serialize};
-mod plan;
+pub mod explain;
+pub mod plan;
 
 const UNDER: &str = "Under";
 const OVER: &str = "Over";
@@ -27,42 +27,6 @@ static DESCRIPTIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "CTE Scan" =>         "Performs a sequential scan of Common Table Expression (CTE) query results. Note that results of a CTE are materialized (calculated and temporarily stored).",
     "" => "" // handle case where key isn't populated in initial input
 };
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct Explain {
-    //TODO: add Triggers back, add default for plan?
-    #[serde(default, rename(deserialize = "Plan"))]
-    pub plan: plan::Plan,
-    #[serde(default, rename(deserialize = "Planning Time"))]
-    pub planning_time: f64,
-    #[serde(default, rename(deserialize = "Execution Time"))]
-    pub execution_time: f64,
-    #[serde(default, rename(deserialize = "Total Cost"))]
-    pub total_cost: f64,
-    #[serde(default, rename(deserialize = "Max Rows"))]
-    pub max_rows: u64,
-    #[serde(default, rename(deserialize = "Max Cost"))]
-    pub max_cost: f64,
-    #[serde(default, rename(deserialize = "Max Duration"))]
-    pub max_duration: f64,
-}
-
-
-impl Default for Explain {
-    fn default() -> Explain {
-        Explain {
-            plan: plan::Plan {
-                ..Default::default()
-            },
-            planning_time: 0.0,
-            execution_time: 0.0,
-            total_cost: 0.0,
-            max_rows: 0,
-            max_cost: 0.0,
-            max_duration: 0.0,
-        }
-    }
-}
 
 // https://www.forrestthewoods.com/blog/should-small-rust-structs-be-passed-by-copy-or-by-borrow/
 pub fn calculate_planner_estimate(plan: plan::Plan) -> plan::Plan {
@@ -90,9 +54,9 @@ pub fn calculate_planner_estimate(plan: plan::Plan) -> plan::Plan {
     new_plan
 }
 
-pub fn calculate_actuals(explain: Explain, plan: plan::Plan) -> (Explain, plan::Plan) {
+pub fn calculate_actuals(explain: explain::Explain, plan: plan::Plan) -> (explain::Explain, plan::Plan) {
     let mut new_plan: plan::Plan = plan;
-    let mut new_explain: Explain = explain;
+    let mut new_explain: explain::Explain = explain;
     new_plan.actual_duration = new_plan.actual_total_time;
     new_plan.actual_cost = new_plan.total_cost;
     for child_plan in new_plan.plans.iter() {
@@ -110,8 +74,8 @@ pub fn calculate_actuals(explain: Explain, plan: plan::Plan) -> (Explain, plan::
     (new_explain, new_plan)
 }
 
-pub fn calculate_maximums(explain: Explain, plan: plan::Plan) -> Explain {
-    let mut new_explain: Explain = explain;
+pub fn calculate_maximums(explain: explain::Explain, plan: plan::Plan) -> explain::Explain {
+    let mut new_explain: explain::Explain = explain;
     if new_explain.max_rows < plan.actual_rows {
         new_explain.max_rows = plan.actual_rows
     }
@@ -124,10 +88,10 @@ pub fn calculate_maximums(explain: Explain, plan: plan::Plan) -> Explain {
     new_explain
 }
 
-pub fn calculate_outlier_nodes(explain: Explain, plan: plan::Plan) -> plan::Plan {
+pub fn calculate_outlier_nodes(explain: explain::Explain, plan: plan::Plan) -> plan::Plan {
     let mut new_plan: plan::Plan = plan.clone();
     new_plan.costliest = (new_plan.actual_cost - explain.max_cost).abs() < DELTA_ERROR;
-    new_plan.largest = (new_plan.actual_rows - explain.max_rows) == 0;
+    new_plan.largest = new_plan.actual_rows == explain.max_rows;
     new_plan.slowest = (new_plan.actual_duration - explain.max_duration).abs() < DELTA_ERROR;
     for child_plan in new_plan.plans.iter_mut() {
         *child_plan = calculate_outlier_nodes(explain.clone(), child_plan.clone());
@@ -135,8 +99,8 @@ pub fn calculate_outlier_nodes(explain: Explain, plan: plan::Plan) -> plan::Plan
     new_plan
 }
 
-fn process_explain(explain: Explain) -> Explain {
-    let mut new_explain: Explain = explain;
+fn process_explain(explain: explain::Explain) -> explain::Explain {
+    let mut new_explain: explain::Explain = explain;
     new_explain.plan = calculate_planner_estimate(new_explain.plan);
     let (e, p) = calculate_actuals(new_explain.clone(), new_explain.clone().plan);
     new_explain = e.clone();
@@ -145,8 +109,8 @@ fn process_explain(explain: Explain) -> Explain {
     new_explain
 }
 
-fn process_child_plans(explain: Explain, plans: Vec<plan::Plan>) -> (Explain, Vec<plan::Plan>) {
-    let mut new_explain: Explain = explain;
+fn process_child_plans(explain: explain::Explain, plans: Vec<plan::Plan>) -> (explain::Explain, Vec<plan::Plan>) {
+    let mut new_explain: explain::Explain = explain;
     let mut new_plans: Vec<plan::Plan> = plans;
     for mut child_plan in new_plans.iter_mut() {
         *child_plan = calculate_planner_estimate(child_plan.clone());
@@ -163,8 +127,8 @@ fn process_child_plans(explain: Explain, plans: Vec<plan::Plan>) -> (Explain, Ve
     (new_explain, new_plans)
 }
 
-pub fn process_all(explain: Explain) -> Explain {
-    let mut new_explain: Explain = explain;
+pub fn process_all(explain: explain::Explain) -> explain::Explain {
+    let mut new_explain: explain::Explain = explain;
     new_explain = process_explain(new_explain.clone());
     if !new_explain.plan.plans.is_empty() {
         let (e, ps) = process_child_plans(new_explain.clone(), new_explain.plan.plans.clone());
@@ -188,7 +152,7 @@ fn duration_to_string(value: f64) -> colored::ColoredString {
     }
 }
 
-pub fn write_explain(explain: Explain, width: usize) {
+pub fn write_explain(explain: explain::Explain, width: usize) {
     println!("○ Total Cost {}", explain.total_cost);
     println!(
         "○ Planning Time: {}",
@@ -280,7 +244,7 @@ pub fn format_percent(number: f64, precision: usize) -> String {
 }
 
 pub fn write_plan(
-    explain: Explain,
+    explain: explain::Explain,
     plan: &plan::Plan,
     prefix: String,
     depth: i32,
@@ -436,9 +400,9 @@ pub fn write_plan(
     }
 }
 
-pub fn visualize(input: String, width: usize) -> Explain {
-    let explains: Vec<Explain> = serde_json::from_str(input.as_str()).unwrap();
-    let mut explain: Explain = explains.into_iter().nth(0).unwrap();
+pub fn visualize(input: String, width: usize) -> explain::Explain {
+    let explains: Vec<explain::Explain> = serde_json::from_str(input.as_str()).unwrap();
+    let mut explain: explain::Explain = explains.into_iter().nth(0).unwrap();
     explain = process_all(explain);
     write_explain(explain.clone(), width);
     explain
