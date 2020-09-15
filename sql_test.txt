@@ -1,0 +1,5 @@
+select * from swimmers join coaches on coaches.id = swimmers.coach_id;
+
+pbpaste | sed '1s/^/EXPLAIN (ANALYZE, COSTS, VERBOSE, BUFFERS, FORMAT JSON) /' | psql -qXAt ex_sql_modeler_dev | target/debug/rustcmdpev
+
+pbpaste | sed '1s/^/EXPLAIN (ANALYZE, COSTS, VERBOSE, BUFFERS, FORMAT JSON) /' | psql -qXAt ex_sql_modeler_dev | gocmdpev
