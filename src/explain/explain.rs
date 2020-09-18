@@ -18,7 +18,6 @@ pub struct Explain {
     pub max_duration: f64,
 }
 
-
 impl Default for Explain {
     fn default() -> Explain {
         Explain {

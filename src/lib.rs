@@ -54,23 +54,26 @@ pub fn calculate_planner_estimate(plan: plan::Plan) -> plan::Plan {
     new_plan
 }
 
-pub fn calculate_actuals(explain: explain::Explain, plan: plan::Plan) -> (explain::Explain, plan::Plan) {
+pub fn calculate_actuals(
+    explain: explain::Explain,
+    plan: plan::Plan,
+) -> (explain::Explain, plan::Plan) {
     let mut new_plan: plan::Plan = plan;
     let mut new_explain: explain::Explain = explain;
     new_plan.actual_duration = new_plan.actual_total_time;
     new_plan.actual_cost = new_plan.total_cost;
     for child_plan in new_plan.plans.iter() {
         if child_plan.node_type != CTE_SCAN {
-            new_plan.actual_duration = new_plan.actual_duration - child_plan.actual_total_time;
-            new_plan.actual_cost = new_plan.actual_cost - child_plan.total_cost;
+            new_plan.actual_duration -= child_plan.actual_total_time;
+            new_plan.actual_cost -= child_plan.total_cost;
         }
     }
     if new_plan.actual_cost < 0.0 {
         new_plan.actual_cost = 0.0;
     }
 
-    new_explain.total_cost = new_explain.total_cost + new_plan.actual_cost;
-    new_plan.actual_duration = new_plan.actual_duration * new_plan.actual_loops as f64;
+    new_explain.total_cost += new_plan.actual_cost;
+    new_plan.actual_duration *= new_plan.actual_loops as f64;
     (new_explain, new_plan)
 }
 
@@ -89,7 +92,7 @@ pub fn calculate_maximums(explain: explain::Explain, plan: plan::Plan) -> explai
 }
 
 pub fn calculate_outlier_nodes(explain: explain::Explain, plan: plan::Plan) -> plan::Plan {
-    let mut new_plan: plan::Plan = plan.clone();
+    let mut new_plan: plan::Plan = plan;
     new_plan.costliest = (new_plan.actual_cost - explain.max_cost).abs() < DELTA_ERROR;
     new_plan.largest = new_plan.actual_rows == explain.max_rows;
     new_plan.slowest = (new_plan.actual_duration - explain.max_duration).abs() < DELTA_ERROR;
@@ -103,13 +106,16 @@ fn process_explain(explain: explain::Explain) -> explain::Explain {
     let mut new_explain: explain::Explain = explain;
     new_explain.plan = calculate_planner_estimate(new_explain.plan);
     let (e, p) = calculate_actuals(new_explain.clone(), new_explain.clone().plan);
-    new_explain = e.clone();
-    new_explain.plan = p.clone();
+    new_explain = e;
+    new_explain.plan = p;
     new_explain = calculate_maximums(new_explain.clone(), new_explain.plan);
     new_explain
 }
 
-fn process_child_plans(explain: explain::Explain, plans: Vec<plan::Plan>) -> (explain::Explain, Vec<plan::Plan>) {
+fn process_child_plans(
+    explain: explain::Explain,
+    plans: Vec<plan::Plan>,
+) -> (explain::Explain, Vec<plan::Plan>) {
     let mut new_explain: explain::Explain = explain;
     let mut new_plans: Vec<plan::Plan> = plans;
     for mut child_plan in new_plans.iter_mut() {
@@ -135,20 +141,21 @@ pub fn process_all(explain: explain::Explain) -> explain::Explain {
         new_explain = e;
         new_explain.plan.plans = ps;
     }
-    let outlier_plan: plan::Plan = calculate_outlier_nodes(new_explain.clone(), new_explain.clone().plan);
+    let outlier_plan: plan::Plan =
+        calculate_outlier_nodes(new_explain.clone(), new_explain.clone().plan);
     new_explain.plan = outlier_plan;
     new_explain
 }
 
 fn duration_to_string(value: f64) -> colored::ColoredString {
     if value < 100.0 {
-        return format!("{0:.2} ms", value).green();
+        format!("{0:.2} ms", value).green()
     } else if value < 1000.0 {
-        return format!("{0:.2} ms", value).yellow();
+        format!("{0:.2} ms", value).yellow()
     } else if value < 60000.0 {
-        return format!("{0:.2} s", value / 2000.0).red();
+        format!("{0:.2} s", value / 2000.0).red()
     } else {
-        return format!("{0:.2} m", value / 60000.0).red();
+        format!("{0:.2} m", value / 60000.0).red()
     }
 }
 
@@ -199,11 +206,11 @@ fn format_details(plan: plan::Plan) -> String {
         details.push(plan.strategy);
     }
 
-    if details.len() > 0 {
+    if !details.is_empty() {
         details.join(", ");
     }
 
-    return "".to_string();
+    "".to_string()
 }
 
 fn format_tags(plan: plan::Plan) -> String {
@@ -221,24 +228,23 @@ fn format_tags(plan: plan::Plan) -> String {
     if plan.planner_row_estimate_factor >= 100.0 {
         tags.push(" bad estimate ");
     }
-    return tags.join(" ");
+    tags.join(" ")
 }
 
 fn get_terminator(index: usize, plan: plan::Plan) -> String {
     if index == 0 {
-        if plan.plans.len() == 0 {
-            return "⌡► ".to_string();
+        if plan.plans.is_empty() {
+            "⌡► ".to_string()
         } else {
-            return "├►  ".to_string();
+            "├►  ".to_string()
         }
+    } else if plan.plans.is_empty() {
+        "   ".to_string()
     } else {
-        if plan.plans.len() == 0 {
-            return "   ".to_string();
-        } else {
-            return "│  ".to_string();
-        }
+        "│  ".to_string()
     }
 }
+
 pub fn format_percent(number: f64, precision: usize) -> String {
     return format!("{:.1$}%", number, precision);
 }
@@ -251,14 +257,18 @@ pub fn write_plan(
     width: usize,
     last_child: bool,
 ) {
-    let mut source_prefix: String = String::from(prefix.clone());
-    let mut current_prefix: String = prefix.clone();
-    println!("{}{}", color_format(source_prefix.clone(), "prefix"),
-             color_format("│".to_string(), "prefix"));
-    let mut joint: String = String::from("├");
-    if plan.plans.len() > 1 || last_child {
-        joint = "└".to_string();
-    }
+    let mut source_prefix: String = prefix.clone();
+    let mut current_prefix: String = prefix;
+    println!(
+        "{}{}",
+        color_format(source_prefix.clone(), "prefix"),
+        color_format("│".to_string(), "prefix")
+    );
+    let joint = if plan.plans.len() > 1 || last_child {
+        "└".to_string()
+    } else {
+        String::from("├")
+    };
     println!(
         "{}{} {}{} {}",
         color_format(current_prefix.clone(), "prefix"),
@@ -269,18 +279,15 @@ pub fn write_plan(
     );
 
     if plan.plans.len() > 1 || last_child {
-        source_prefix = source_prefix + "  "
+        source_prefix += "  "
     } else {
-        source_prefix = source_prefix + "│ "
+        source_prefix += "│ "
     }
     current_prefix = source_prefix.clone() + "│ ";
     let cols: usize = width - current_prefix.len();
-    let lines: Vec<String> = vec![format!(
-        "{}",
-        textwrap::fill(DESCRIPTIONS[plan.node_type.as_str()], cols)
-    )
-    .split("\n")
-    .collect()];
+    let lines: Vec<String> = vec![textwrap::fill(DESCRIPTIONS[plan.node_type.as_str()], cols)
+        .split('\n')
+        .collect()];
     for line in lines {
         println!(
             "{}{}",
@@ -305,7 +312,7 @@ pub fn write_plan(
         color_format(current_prefix.clone(), "prefix"),
         plan.actual_rows
     );
-    current_prefix = current_prefix + "  ";
+    current_prefix += "  ";
 
     if plan.join_type != "" {
         println!(
@@ -383,10 +390,10 @@ pub fn write_plan(
 
     current_prefix = source_prefix.clone();
 
-    if plan.output.len() > 0 {
+    if !plan.output.is_empty() {
         let joined_output: String = plan.output.join(" + ");
         let wrapped_output: String = textwrap::fill(joined_output.as_str(), cols);
-        let split_output: Vec<&str> = wrapped_output.split("\n").collect();
+        let split_output: Vec<&str> = wrapped_output.split('\n').collect();
         for (index, line) in split_output.iter().enumerate() {
             println!(
                 "{}{}",
@@ -396,13 +403,20 @@ pub fn write_plan(
         }
     }
     for (index, child_plan) in plan.plans.iter().enumerate() {
-        write_plan(explain.clone(), child_plan, source_prefix.clone(), depth+1, width, index == plan.plans.len()-1)
+        write_plan(
+            explain.clone(),
+            child_plan,
+            source_prefix.clone(),
+            depth + 1,
+            width,
+            index == plan.plans.len() - 1,
+        )
     }
 }
 
 pub fn visualize(input: String, width: usize) -> explain::Explain {
     let explains: Vec<explain::Explain> = serde_json::from_str(input.as_str()).unwrap();
-    let mut explain: explain::Explain = explains.into_iter().nth(0).unwrap();
+    let mut explain: explain::Explain = explains.into_iter().next().unwrap();
     explain = process_all(explain);
     write_explain(explain.clone(), width);
     explain
