@@ -1,7 +1,8 @@
 use colored::*;
 use phf::phf_map;
-pub mod explain;
-pub mod plan;
+pub mod structure;
+use structure::explain::explain;
+use structure::plan::plan;
 
 const UNDER: &str = "Under";
 const OVER: &str = "Over";
