@@ -17,7 +17,7 @@ Generate a query plan with all the trimmings by prefixing your query with:
 EXPLAIN (ANALYZE, COSTS, VERBOSE, BUFFERS, FORMAT JSON)
 ```
 
-Then pipe the resulting query plan into `gocmdpev`.
+Then pipe the resulting query plan into `rustcmdpev`.
 
 On MacOS you can just grab a query on your clipboard and run this one-liner:
 

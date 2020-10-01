@@ -352,7 +352,6 @@ pub fn write_plan(
     }
 
     if plan.filter != "" {
-        //outputFn("%v %v %v", mutedFormat("filter"), plan.Filter, mutedFormat(fmt.Sprintf("[-%v rows]", humanize.Comma(int64(plan.RowsRemovedByFilter)))))
         println!(
             "{}{} {} [-{} rows]",
             color_format(current_prefix.clone(), "prefix"),
