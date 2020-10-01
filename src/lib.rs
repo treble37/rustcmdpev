@@ -286,14 +286,14 @@ pub fn write_plan(
     }
     current_prefix = source_prefix.clone() + "│ ";
     let cols: usize = width - current_prefix.len();
-    let lines: Vec<String> = vec![textwrap::fill(DESCRIPTIONS[plan.node_type.as_str()], cols)
+    for line in textwrap::fill(DESCRIPTIONS[plan.node_type.as_str()], cols)
         .split('\n')
-        .collect()];
-    for line in lines {
+        .collect::<Vec<&str>>()
+    {
         println!(
             "{}{}",
             color_format(current_prefix.clone(), "prefix"),
-            color_format(line, "muted")
+            color_format(line.to_string(), "muted")
         )
     }
     println!(
