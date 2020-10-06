@@ -3,6 +3,8 @@ name = "rustcmdpev"
 version = "0.1.0"
 authors = ["Bruce P <treble37@users.noreply.github.com>"]
 edition = "2018"
+repository = "https://github.com/treble37/rustcmdpev"
+license = "MIT"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
