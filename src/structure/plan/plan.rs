@@ -5,6 +5,7 @@ use std::fmt;
 type EstimateDirection = String;
 type NodeType = String;
 
+/// The Plan struct
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Plan {
     #[serde(default, rename(deserialize = "Actual Cost"))]

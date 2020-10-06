@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+/// The Explain struct
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Explain {
     //TODO: add Triggers back, add default for plan?

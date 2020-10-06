@@ -377,7 +377,6 @@ pub fn write_plan(
     }
 
     if plan.planner_row_estimate_factor != 0.0 {
-        //outputFn("%v %vestimated %v %.2fx", mutedFormat("rows"), plan.PlannerRowEstimateDirection, mutedFormat("by"), plan.PlannerRowEstimateFactor)
         println!(
             "{}{} {}estimated {} {:.2}x",
             color_format(current_prefix.clone(), "prefix"),
