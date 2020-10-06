@@ -1,7 +1,6 @@
 # Rustcmdpev
 
-[[https://crates.io/crates/rustcmdpev][file:https://img.shields.io/crates/v/rustcmdpev.svg]]
-[[https://travis-ci.org/treble37/rustcmdpev][file:https://travis-ci.org/treble37/rustcmdpev.svg?branch=master]]
+[![Build Status](https://travis-ci.org/treble37/rustcmdpev.svg)](https://travis-ci.org/treble37/rustcmdpev)
 
 A command-line Rust Postgres query visualizer, heavily inspired by the excellent (web-based) [pev](https://github.com/AlexTatiyants/pev).
 It started out being ported from [gocmdpev](https://github.com/simon-engledew/gocmdpev)
