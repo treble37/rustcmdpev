@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use rustcmdpev::structure::explain::explain;
+    use rustcmdpev::structure::data::explain;
     #[test]
     fn test_explain_with_one_join() {
         let input = r#"
