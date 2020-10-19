@@ -7,6 +7,8 @@ It started out being ported from [gocmdpev](https://github.com/simon-engledew/go
 
 # Demo
 
+![rustcmdpev screenshot](https://user-images.githubusercontent.com/777964/96496883-ad318080-11fe-11eb-8bbb-b81a52676787.png)
+
 # Install
 
 # Overview

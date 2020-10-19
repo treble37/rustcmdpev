@@ -305,7 +305,7 @@ pub fn write_plan(
     println!(
         "{}○ Cost: {} {}",
         color_format(current_prefix.clone(), "prefix"),
-        plan.actual_cost,
+        duration_to_string(plan.actual_cost),
         format_percent((plan.actual_cost / explain.total_cost) * 100.0, 1)
     );
     println!(
