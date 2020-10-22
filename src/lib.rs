@@ -208,7 +208,7 @@ fn format_details(plan: plan::Plan) -> String {
     }
 
     if !details.is_empty() {
-        details.join(", ");
+        return details.join(", ");
     }
 
     "".to_string()
