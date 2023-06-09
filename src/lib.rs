@@ -3,10 +3,7 @@ use phf::phf_map;
 pub mod structure;
 use structure::data::explain;
 use structure::data::plan;
-
-const UNDER: &str = "Under";
-const OVER: &str = "Over";
-const CTE_SCAN: &str = "CTE Scan";
+use structure::data::plan::EstimateDirection;
 
 const DELTA_ERROR: f64 = 0.001;
 
@@ -38,7 +35,7 @@ pub fn calculate_planner_estimate(plan: plan::Plan) -> plan::Plan {
         return new_plan;
     }
 
-    new_plan.planner_row_estimate_direction = UNDER.to_string();
+    new_plan.planner_row_estimate_direction = EstimateDirection::UNDER;
     if new_plan.plan_rows != 0 {
         new_plan.planner_row_estimate_factor =
             new_plan.actual_rows as f64 / new_plan.plan_rows as f64;
@@ -46,7 +43,7 @@ pub fn calculate_planner_estimate(plan: plan::Plan) -> plan::Plan {
 
     if new_plan.planner_row_estimate_factor < 1.0 {
         new_plan.planner_row_estimate_factor = 0.0;
-        new_plan.planner_row_estimate_direction = OVER.to_string();
+        new_plan.planner_row_estimate_direction = EstimateDirection::OVER;
         if new_plan.actual_rows != 0 {
             new_plan.planner_row_estimate_factor =
                 new_plan.plan_rows as f64 / new_plan.actual_rows as f64;
@@ -64,7 +61,7 @@ pub fn calculate_actuals(
     new_plan.actual_duration = new_plan.actual_total_time;
     new_plan.actual_cost = new_plan.total_cost;
     for child_plan in new_plan.plans.iter() {
-        if child_plan.node_type != CTE_SCAN {
+        if child_plan.node_type != EstimateDirection::CTE_SCAN.to_string() {
             new_plan.actual_duration -= child_plan.actual_total_time;
             new_plan.actual_cost -= child_plan.total_cost;
         }

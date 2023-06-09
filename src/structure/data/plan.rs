@@ -2,7 +2,25 @@
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
-type EstimateDirection = String;
+#[derive(Serialize, Deserialize, Default, Debug, Clone)]
+pub enum EstimateDirection {
+    UNDER,
+    OVER,
+    CTE_SCAN,
+    #[default]
+    UNKNOWN,
+}
+
+impl fmt::Display for EstimateDirection {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            EstimateDirection::UNDER => write!(f, "UNDER"),
+            EstimateDirection::OVER => write!(f, "OVER"),
+            EstimateDirection::CTE_SCAN => write!(f, "CTE Scan"),
+            EstimateDirection::UNKNOWN => write!(f, "UNKNOWN"),
+        }
+    }
+}
 type NodeType = String;
 
 /// The Plan struct
@@ -101,6 +119,7 @@ pub struct Plan {
     #[serde(default, rename(deserialize = "Plans"))]
     pub plans: Vec<Plan>,
 }
+
 impl fmt::Display for Plan {
     // This trait requires `fmt` with this exact signature.
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -109,7 +128,7 @@ impl fmt::Display for Plan {
         // operation succeeded or failed. Note that `write!` uses syntax which
         // is very similar to `println!`.
         //write!(f, "{}", self.0)
-        write!(f, "{}", self)
+        write!(f, "{:?}", self)
     }
 }
 
@@ -142,7 +161,7 @@ impl Default for Plan {
             node_type: String::from(""),
             output: Vec::new(),
             parent_relationship: String::from(""),
-            planner_row_estimate_direction: String::from(""),
+            planner_row_estimate_direction: EstimateDirection::UNKNOWN,
             planner_row_estimate_factor: 0.0,
             plan_rows: 0,
             plan_width: 0,
