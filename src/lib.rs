@@ -196,11 +196,11 @@ pub fn color_format(s: String, format: &str) -> colored::ColoredString {
 fn format_details(plan: plan::Plan) -> String {
     let mut details = vec![];
 
-    if plan.scan_direction != "" {
+    if !plan.scan_direction.is_empty() {
         details.push(plan.scan_direction);
     }
 
-    if plan.strategy != "" {
+    if !plan.strategy.is_empty() {
         details.push(plan.strategy);
     }
 
@@ -244,7 +244,7 @@ fn get_terminator(index: usize, plan: plan::Plan) -> String {
 }
 
 pub fn format_percent(number: f64, precision: usize) -> String {
-    return format!("{:.1$}%", number, precision);
+    format!("{:.1$}%", number, precision)
 }
 
 pub fn write_plan(
@@ -312,7 +312,7 @@ pub fn write_plan(
     );
     current_prefix += "  ";
 
-    if plan.join_type != "" {
+    if !plan.join_type.is_empty() {
         println!(
             "{}{} {}",
             color_format(current_prefix.clone(), "prefix"),
@@ -320,7 +320,7 @@ pub fn write_plan(
             color_format(plan.clone().join_type, "muted")
         )
     }
-    if plan.relation_name != "" {
+    if !plan.relation_name.is_empty() {
         println!(
             "{}{} {} {}",
             color_format(current_prefix.clone(), "prefix"),
@@ -330,7 +330,7 @@ pub fn write_plan(
         )
     }
 
-    if plan.index_name != "" {
+    if !plan.index_name.is_empty() {
         println!(
             "{}{} {}",
             color_format(current_prefix.clone(), "prefix"),
@@ -339,7 +339,7 @@ pub fn write_plan(
         )
     }
 
-    if plan.index_condition != "" {
+    if !plan.index_condition.is_empty() {
         println!(
             "{}{} {}",
             color_format(current_prefix.clone(), "prefix"),
@@ -348,7 +348,7 @@ pub fn write_plan(
         )
     }
 
-    if plan.filter != "" {
+    if !plan.filter.is_empty() {
         println!(
             "{}{} {} [-{} rows]",
             color_format(current_prefix.clone(), "prefix"),
@@ -357,7 +357,7 @@ pub fn write_plan(
             color_format(plan.rows_removed_by_filter.to_string(), "muted")
         );
     }
-    if plan.hash_condition != "" {
+    if !plan.hash_condition.is_empty() {
         println!(
             "{}{} {}",
             color_format(current_prefix.clone(), "prefix"),
@@ -365,7 +365,7 @@ pub fn write_plan(
             plan.hash_condition
         )
     }
-    if plan.cte_name != "" {
+    if !plan.cte_name.is_empty() {
         println!(
             "{}CTE {}",
             color_format(current_prefix.clone(), "prefix"),
