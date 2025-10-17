@@ -1,18 +1,4 @@
-### Todos
-
-- [x] humanize numbers
-- [ ] refactor code
-- [ ] highlight Duration: 44ms in yellow or something to set it apart.
-- [ ] Add back Triggers struct in Explain
-- [ ] I think maybe join Inner and (swimmers.coach_id = coaches.id) should be highlighted in a different color from the other stuff, but the same color as each other. so...maybe a pale blue?
-- [ ] (Lower priority) I think it should (optionally) have line numbers. Then when you share it with someone you can say "look at line 23" (for possible HTML/PDF)
-- [ ] 2 color pallettes
-
-# Prompt:
-
-For https://github.com/treble37/rustcmdpev , can you make a list of refactoring suggestions? In addition to the refactoring suggestions, also include in checkbox format according to github flavored markdown?
-
-# ChatGPT 5 Todos
+# Todos
 
 Here’s a focused refactor checklist for **treble37/rustcmdpev**—prioritized to modernize the project structure, improve UX, reliability, and make ongoing maintenance easy.
 
@@ -85,29 +71,7 @@ Here’s a focused refactor checklist for **treble37/rustcmdpev**—prioritized 
 * [ ] Automated **changelog** with `git-cliff`.
 * [ ] **Semantic versioning** and tags; publish **prebuilt tarballs** with checksums and a Homebrew tap and/or Scoop manifest.
 
----
-
-If you’d like, I can turn this into GitHub **Issues**/**Projects** cards grouped by milestone next.
-
-[1]: https://github.com/treble37/rustcmdpev "GitHub - treble37/rustcmdpev"
-
-
-# Augment Todos (Claude Sonet 4)
-I'll analyze the rustcmdpev repository to provide refactoring suggestions. Let me start by exploring the codebase structure and understanding the current implementation.
-
-Now let me explore the source code structure to understand the implementation:
-
-Let me examine the structure modules and test files to get a complete picture:
-
-Let me also check for any additional files that might provide context:
-
-Now let me check the git history to understand the evolution and any patterns:
-
-Based on my analysis of the rustcmdpev codebase, I can now provide comprehensive refactoring suggestions. Let me create a structured list of refactoring recommendations:
-
-## Refactoring Suggestions for rustcmdpev
-
-Based on my analysis of the codebase, here are comprehensive refactoring suggestions organized by priority and category:
+--------
 
 ### 🏗️ **Architecture & Code Organization**
 
