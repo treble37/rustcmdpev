@@ -1,6 +1,8 @@
-use colored::*;
 use phf::phf_map;
+pub mod display;
 pub mod structure;
+use colored::*;
+use display::colors::color_format;
 use structure::data::explain;
 use structure::data::plan;
 
@@ -180,20 +182,6 @@ pub fn write_explain(explain: explain::Explain, width: usize) {
         width,
         explain.plan.plans.len() == 1,
     )
-}
-
-pub fn color_format(s: String, format: &str) -> colored::ColoredString {
-    match format {
-        "prefix" => s.bright_black(),
-        "muted" => s.bright_black(),
-        "bold" => s.bright_white(),
-        "good" => s.green(),
-        "warning" => s.yellow(),
-        "critical" => s.red(),
-        "output" => s.cyan(),
-        "tag" => s.on_bright_red().bright_white(),
-        _ => s.green(),
-    }
 }
 
 fn format_details(plan: plan::Plan) -> String {
