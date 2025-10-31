@@ -121,7 +121,7 @@ fn process_child_plans(
 ) -> (explain::Explain, Vec<plan::Plan>) {
     let mut new_explain: explain::Explain = explain;
     let mut new_plans: Vec<plan::Plan> = plans;
-    for mut child_plan in new_plans.iter_mut() {
+    for child_plan in new_plans.iter_mut() {
         *child_plan = calculate_planner_estimate(child_plan.clone());
         let (e, p) = calculate_actuals(new_explain.clone(), child_plan.clone());
         new_explain = e;
