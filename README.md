@@ -9,6 +9,17 @@ It started out being ported from [gocmdpev](https://github.com/simon-engledew/go
 
 ![rustcmdpev screenshot](https://user-images.githubusercontent.com/777964/96496883-ad318080-11fe-11eb-8bbb-b81a52676787.png)
 
+# Documentation
+
+- Deep dive: `CODEBASE_OVERVIEW.md`
+- Docs site source: `docs/`
+- Docs site instructions: `docs/README.md`
+- Build the docs site (requires `mdbook`):
+
+```bash
+mdbook build docs
+```
+
 # Installation
 
 Right now the installation process is manual and assumes you can compile the rust source to a binary executable for your system.

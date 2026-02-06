@@ -1,0 +1,5 @@
+[book]
+title = "rustcmdpev"
+authors = ["rustcmdpev contributors"]
+language = "en"
+src = "src"
