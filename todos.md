@@ -1,234 +1,126 @@
 # Todos
 
-Here’s a focused refactor checklist for **treble37/rustcmdpev**—prioritized to modernize the project structure, improve UX, reliability, and make ongoing maintenance easy.
+Single consolidated checklist for MVP v1 feature parity with `gocmdpev`, plus immediate hardening and follow-on work.
 
-### Project scaffolding & packaging
+## P0 (must ship for MVP v1)
 
-* [ ] Convert to a **workspace** with a `lib` crate (`rustcmdpev-core`) and a `bin` crate (`rustcmdpev`) so parsing/formatting logic is reusable from tests and other tools. (Repo is currently a single binary CLI per README usage.) ([GitHub][1])
-* [ ] Add **GitHub Actions** CI (replace `.travis.yml`, which is deprecated) for `build`, `test`, `clippy`, and `fmt` on Linux/macOS/Windows. ([GitHub][1])
-* [ ] Publish **versioned releases** with binaries for the 3 OSes (use `cargo-dist` or `cross` + Actions); README says “manual install”, which hurts adoption. ([GitHub][1])
-* [ ] Define and document **MSRV** (e.g., Rust 1.xx) and enforce via CI.
-* [ ] Add `LICENSE` header checks (already MIT licensed) and `cargo-deny` audit.
+### Parity contract and release gating
+- [ ] Add a dated MVP v1 parity contract section in `docs/src/parity.md`.
+- [ ] For each parity item, record `status`, `owner`, and `target version`.
+- [ ] Mark each parity item as binary pass/fail with explicit acceptance checks.
+- [ ] Create a parity report artifact template for release.
+- [ ] Block v1.0 release if any P0 parity requirement is incomplete.
+- [ ] Link parity report from release notes/checklist.
 
-### CLI & UX
+### CLI, input, and output compatibility
+- [ ] Add `clap`-based CLI with documented flags and help output.
+- [ ] Define and document stdin JSON contract for MVP parity behavior.
+- [ ] Support input from file (`--input`) in addition to stdin.
+- [ ] Add `--compat` mode for parity-target rendering behavior.
+- [ ] Support output formats required for parity (`pretty`, `json`, `table`).
+- [ ] Support `--color auto|always|never`, TTY detection, and `NO_COLOR`.
+- [ ] Ensure Windows console color behavior works correctly.
+- [ ] Add verbose/quiet modes and structured logging (`tracing` + `tracing-subscriber`).
 
-* [ ] Switch to **`clap`** (derive) for flags/subcommands:
-  `rustcmdpev [--input plan.json] [--format {pretty,json,table}] [--color auto|always|never] [--theme dark|light]`
-  (README implies stdin piping only; add file input & output modes.) ([GitHub][1])
-* [ ] Provide **helpful errors** and exit codes; adopt `anyhow` for top-level error bubble and `thiserror` for domain errors.
-* [ ] Support **Windows consoles** and TTY color detection; gate colors with `--color` and respect `NO_COLOR`.
-* [ ] Add **progress/verbose** logging via `tracing` + `tracing-subscriber` (`RUST_LOG` control).
+### Safety and error handling
+- [ ] Remove panic paths (`unwrap`/`expect`) from core parse/process flow for valid inputs.
+- [ ] Return typed errors from core processing path and map them to CLI exit codes.
+- [ ] Return non-zero exit code for empty stdin input with actionable error text.
+- [ ] Return non-zero exit code for invalid JSON with actionable error text.
+- [ ] Validate input JSON structure and required plan invariants before processing.
+- [ ] Add max plan depth / large-input guards to prevent failure on extreme plans.
 
-### Core design (parsing & model)
+### Core model and processing correctness
+- [ ] Implement a clear parser pipeline: raw JSON -> domain model -> validated plan tree.
+- [ ] Keep strongly typed serde models for Postgres EXPLAIN fields with version-tolerant optional fields.
+- [ ] Add schema-aware handling for Postgres version field differences.
+- [ ] Represent plan structure with explicit node/tree semantics and invariant checks.
+- [ ] Separate analysis logic (estimates, actuals, outliers) from rendering logic.
+- [ ] Extract hardcoded thresholds/labels/tree characters into named constants.
 
-* [ ] Define **strongly-typed serde models** for Postgres EXPLAIN (JSON) fields (Plan/Node, costs, buffers, timings), isolating “raw JSON” → “domain model” conversion in `parser` module. README shows you expect JSON EXPLAIN piped in. ([GitHub][1])
-* [ ] Represent the plan as a **tree** with well-typed `PlanNode { kind, children, costs, rows, width, buffer_hits, … }`.
-* [ ] Add a **schema-aware adapter** that tolerates Postgres version differences (optional fields) with `#[serde(default)]` and `Option<T>`.
-* [ ] Validate inputs early with a **`PlanValidation`** phase (e.g., root node presence, numeric sanity checks).
+### Rendering determinism and parity testing
+- [ ] Add fixture-based parity tests comparing rendered output to expected snapshots.
+- [ ] Add at least 4 parity fixtures, including `example.json` and 3 real-world plans.
+- [ ] Normalize ANSI and insignificant whitespace in parity comparisons.
+- [ ] Run parity snapshot tests in `--compat` mode.
+- [ ] Add deterministic rendering snapshots to verify stable output across runs.
+- [ ] Add integration tests for success and failure exit codes.
+- [ ] Gate merges in CI on parity test pass.
+- [ ] Verify deterministic `--compat` output on Linux/macOS/Windows in CI.
 
-### Rendering & output
+### CI/CD and release essentials
+- [ ] Replace `.travis.yml` with GitHub Actions CI for `build`, `test`, `clippy`, and `fmt`.
+- [ ] Add CI matrix for Linux/macOS/Windows.
+- [ ] Define and enforce MSRV in CI.
+- [ ] Publish versioned releases with binaries for Linux/macOS/Windows.
+- [ ] Establish semantic versioning and tag conventions.
 
-* [ ] Split into `render` module with pluggable **renderers**:
+### Documentation and install baseline
+- [ ] Add `cargo install rustcmdpev` instructions to README/docs.
+- [ ] Add Homebrew install path or explicit Homebrew roadmap entry.
+- [ ] Add release checklist item for install smoke verification.
+- [ ] Add Linux/macOS/Windows psql workflow examples (including PowerShell/CMD where needed).
+- [ ] Validate documented command examples in CI/docs checks.
+- [ ] Add `example.json` as a bundled sample plan fixture.
+- [ ] Add CI smoke test for `cat example.json | rustcmdpev`.
 
-  * Text (ASCII tree; width-aware wrapping)
-  * Table (using `comfy-table`)
-  * JSON passthrough/normalized JSON (for chaining in scripts)
-* [ ] Add **themes** (light/dark/no-color) and condensed vs verbose modes.
-* [ ] Output **explain summaries** (total cost, total time, loops, memory, buffers) at the top for quick scan.
+## P1 (should ship shortly after MVP cut)
 
-### Performance & memory
+### Architecture and maintainability
+- [ ] Convert to a workspace with `rustcmdpev-core` (lib) and `rustcmdpev` (bin).
+- [ ] Finalize render module boundaries (`display/colors`, `display/tree`, `display/format`).
+- [ ] Refactor large `Plan` model into grouped sub-structs where practical.
+- [ ] Improve function signatures by introducing context structs and reducing large parameter lists.
+- [ ] Reduce unnecessary cloning and ownership churn in hot paths.
 
-* [ ] Prefer **zero-copy** deserialization where practical (e.g., `Cow<'_, str>`), and avoid unnecessary string allocations in renderers.
-* [ ] Consider **streaming parse** (`serde_json::Deserializer::from_reader(std::io::stdin())`) to handle large plans without loading entire input into memory.
-* [ ] Micro-opt: pre-compute aggregate metrics (total rows, cost ranges) once, reuse during rendering.
+### Output features and UX polish
+- [ ] Add theme support (`dark`, `light`, `no-color`) and condensed/verbose render modes.
+- [ ] Add summary block improvements (cost, time, loops, memory, buffers).
+- [ ] Add customization for tree drawing characters/styles.
+- [ ] Add `--postgres-version` hinting for parser quirks.
 
-### Testing & quality
+### Quality and testing depth
+- [ ] Expand unit tests for parsing oddities and calculation functions.
+- [ ] Expand integration tests across diverse PostgreSQL plan types.
+- [ ] Add property tests for plan invariants (e.g., non-negative costs, child consistency).
+- [ ] Add fixture utilities and helpers for assertions.
+- [ ] Add performance benchmarks for parsing/rendering.
+- [ ] Enable strict linting policy (`clippy`, warning policy) and project rustfmt config.
 
-* [ ] Add **golden tests** with `insta` snapshots for each renderer (text/table/json) using a small set of sample plans (there is a `tests/` dir and a `sql_test.txt` in the repo—formalize them). ([GitHub][1])
-* [ ] Unit tests for parsing oddities (missing fields, different Postgres versions), and for CLI arg edge cases.
-* [ ] Add **property tests** (`proptest`) for plan tree invariants (e.g., costs ≥ 0, children count matches).
-* [ ] Enable **strict lints**: `#![deny(warnings)]`, `clippy::pedantic` (allow where noisy), and add a `rustfmt.toml`.
+### Distribution and project hygiene
+- [ ] Add automated changelog generation (`git-cliff`).
+- [ ] Publish prebuilt tarballs with checksums (and package metadata for platform managers).
+- [ ] Add license/header and dependency policy checks (`cargo-deny`).
+- [ ] Add `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, and issue templates.
+- [ ] Add README badges for crates/docs/CI and improve quickstart docs.
+- [ ] Add `examples/` plans and a reproducible local demo target.
+- [ ] Add API/module-level docs for public surfaces and complex logic.
 
-### Developer experience
+## P2 (backlog and optional extensions)
 
-* [ ] Create `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, and **issue templates**; currently repo has minimal guidance. ([GitHub][1])
-* [ ] Add `examples/` with small **EXPLAIN** JSON samples and a `make demo` (README shows a sample `cargo run -- '[{...}]'`; provide files). ([GitHub][1])
-* [ ] Document **installation via cargo** (`cargo install rustcmdpev`) once published to crates.io.
-* [ ] Add **badges** in README: crates.io, docs.rs, CI status (README currently shows build status image and basic usage). ([GitHub][1])
+### Performance and optimization
+- [ ] Investigate zero-copy deserialization opportunities (`Cow<'_, str>`) where beneficial.
+- [ ] Support streaming JSON parse from reader for very large plans.
+- [ ] Pre-compute aggregate metrics once and reuse in rendering.
+- [ ] Optimize string allocation patterns (`with_capacity`, reuse buffers, reduced concatenation).
+- [ ] Evaluate iterative traversal/memoization for deep tree performance.
+- [ ] Reduce allocations in hot paths (reuse objects/buffers where justified).
 
-### Cross-platform & integration
+### Dependency and modernization follow-up
+- [ ] Continue modernizing Rust patterns (`?`, targeted `const fn`, idiomatic APIs).
+- [ ] Audit and update dependency set; evaluate replacing `phf` if maintainability improves.
+- [ ] Add automated dependency update workflow.
+- [ ] Add CI coverage reporting.
 
-* [ ] Provide **psql helpers** for Linux/macOS/Windows (PowerShell example) to prepend `EXPLAIN` automatically (README gives a macOS `pbpaste` one-liner; add others). ([GitHub][1])
-* [ ] Add `--postgres-version` hint if you ever need version-specific parsing quirks.
-* [ ] Optional: **Postgres connection mode** (feature-flagged) to run EXPLAIN directly (use `tokio-postgres`), keeping default as stdin for portability.
+### Feature extensions (non-MVP)
+- [ ] Decide and document MVP posture for Python bindings (`include` or `defer`) with date/owner/rationale.
+- [ ] Decide and document MVP posture for Rails integration (`include` or `defer`) with date/owner/rationale.
+- [ ] Evaluate optional direct Postgres connection mode (feature-flagged).
+- [ ] Evaluate optional HTML export.
+- [ ] Evaluate optional CSV export.
+- [ ] Evaluate optional opt-in anonymous usage telemetry (off by default).
 
-### Observability & telemetry (opt-in)
-
-* [ ] Gate anonymous **usage metrics** behind a feature flag/env var; never default on. Useful to learn which renderers/flags are used.
-
-### Release engineering
-
-* [ ] Automated **changelog** with `git-cliff`.
-* [ ] **Semantic versioning** and tags; publish **prebuilt tarballs** with checksums and a Homebrew tap and/or Scoop manifest.
-
---------
-
-### 🏗️ **Architecture & Code Organization**
-
-- [ ] **Extract display/formatting logic into separate modules**
-  - Move color formatting functions to `src/display/colors.rs`
-  - Move tree rendering logic to `src/display/tree.rs`
-  - Move text formatting utilities to `src/display/format.rs`
-
-- [ ] **Create a proper error handling system**
-  - Replace `unwrap()` calls with proper error handling using `Result<T, E>`
-  - Create custom error types for different failure scenarios
-  - Add error context for better debugging
-
-- [ ] **Separate concerns in the main processing pipeline**
-  - Extract calculation logic into `src/analysis/` module
-  - Create separate modules for different calculation types (estimates, actuals, outliers)
-  - Move business logic out of display functions
-
-### 🔧 **Code Quality & Maintainability**
-
-- [ ] **Reduce excessive cloning throughout the codebase**
-  - Use references (`&`) instead of `clone()` where possible
-  - Implement `Copy` trait for small structs where appropriate
-  - Consider using `Cow<'_, T>` for conditional ownership
-
-- [ ] **Improve function signatures and reduce parameter passing**
-  - Create a context struct to pass common parameters
-  - Use builder pattern for complex function calls
-  - Reduce the number of parameters in `write_plan` function
-
-- [ ] **Extract magic numbers and strings to constants**
-  - Move hardcoded values like `100.0`, `1000.0`, `60000.0` to named constants
-  - Create constants for color format strings
-  - Define constants for tree drawing characters
-
-- [ ] **Simplify the large `Plan` struct**
-  - Group related fields into sub-structs (e.g., `TimingInfo`, `BlockInfo`, `EstimateInfo`)
-  - Consider using enums for categorical data
-  - Implement builder pattern for `Plan` construction
-
-### 🧪 **Testing & Validation**
-
-- [ ] **Expand test coverage significantly**
-  - Add unit tests for all calculation functions
-  - Add integration tests for different PostgreSQL plan types
-  - Add property-based tests for edge cases
-
-- [ ] **Add input validation and sanitization**
-  - Validate JSON structure before processing
-  - Handle malformed or incomplete plan data gracefully
-  - Add schema validation for input data
-
-- [ ] **Create test fixtures and utilities**
-  - Add sample PostgreSQL plans for different query types
-  - Create test helpers for common assertions
-  - Add performance benchmarks
-
-### ⚡ **Performance & Efficiency**
-
-- [ ] **Optimize string operations and allocations**
-  - Use `String::with_capacity()` for known string sizes
-  - Consider using `&str` instead of `String` where possible
-  - Cache formatted strings that are reused
-
-- [ ] **Improve recursive processing efficiency**
-  - Consider iterative approaches for deep plan trees
-  - Add memoization for expensive calculations
-  - Optimize the outlier detection algorithm
-
-- [ ] **Reduce memory allocations in hot paths**
-  - Reuse buffers for string formatting
-  - Use stack-allocated arrays where possible
-  - Consider using object pools for frequently created objects
-
-### 🎨 **User Experience & Features**
-
-- [ ] **Make output formatting configurable**
-  - Add command-line options for different output formats
-  - Support different color schemes/themes
-  - Allow customization of tree drawing characters
-
-- [ ] **Improve command-line interface**
-  - Add proper CLI argument parsing using `clap` or `structopt`
-  - Support reading from files in addition to stdin
-  - Add verbose/quiet output modes
-
-- [ ] **Add output format options**
-  - Support JSON output format
-  - Add HTML export capability
-  - Consider adding CSV export for data analysis
-
-### 🔒 **Safety & Robustness**
-
-- [ ] **Replace unsafe operations with safe alternatives**
-  - Review all `unwrap()` calls and replace with proper error handling
-  - Add bounds checking where needed
-  - Use safe string operations
-
-- [ ] **Improve memory safety**
-  - Avoid potential stack overflows in recursive functions
-  - Add limits for maximum plan depth
-  - Handle very large input files gracefully
-
-- [ ] **Add comprehensive logging**
-  - Use `log` crate for structured logging
-  - Add debug information for troubleshooting
-  - Log performance metrics for optimization
-
-### 📚 **Documentation & Maintenance**
-
-- [ ] **Add comprehensive documentation**
-  - Document all public APIs with examples
-  - Add module-level documentation
-  - Create developer guide for contributors
-
-- [ ] **Improve code comments and inline documentation**
-  - Add comments explaining complex algorithms
-  - Document the purpose of magic numbers
-  - Explain the PostgreSQL plan structure
-
-- [ ] **Add development tooling**
-  - Set up `rustfmt` configuration
-  - Add `clippy` configuration with project-specific rules
-  - Set up pre-commit hooks
-
-### 🔄 **Modernization & Dependencies**
-
-- [ ] **Update to modern Rust patterns**
-  - Use `?` operator instead of explicit error handling
-  - Leverage newer Rust features where appropriate
-  - Consider using `const fn` for compile-time computations
-
-- [ ] **Review and update dependencies**
-  - Update to latest versions of dependencies
-  - Consider replacing `phf` with `once_cell` or `lazy_static`
-  - Evaluate if all dependencies are still needed
-
-- [ ] **Add CI/CD improvements**
-  - Add automated testing for multiple Rust versions
-  - Set up code coverage reporting
-  - Add automated dependency updates
-
-### 🎯 **Specific Technical Improvements**
-
-- [ ] **Refactor the `DESCRIPTIONS` static map**
-  - Consider loading descriptions from a configuration file
-  - Add support for internationalization
-  - Make descriptions more detailed and helpful
-
-- [ ] **Improve the duration formatting logic**
-  - Extract to a separate utility module
-  - Add more granular time units
-  - Support different time format preferences
-
-- [ ] **Optimize the tree rendering algorithm**
-  - Reduce string concatenations
-  - Pre-calculate tree structure
-  - Support different tree styles
-
-These refactoring suggestions are prioritized to address the most critical issues first (architecture and code quality) while providing a roadmap for long-term improvements. Each checkbox represents a discrete task that can be tackled independently, making it easier to implement incrementally.
+### Advanced docs and i18n ideas
+- [ ] Improve inline comments for complex algorithms and design tradeoffs.
+- [ ] Expand duration formatting options and user preference support.
+- [ ] Evaluate making operator descriptions externally configurable and i18n-ready.
