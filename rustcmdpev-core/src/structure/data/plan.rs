@@ -1,7 +1,8 @@
 //https://github.com/serde-rs/serde/pull/238
+use crate::structure::data::actuals::PlanActuals;
+use crate::structure::data::estimates::PlanEstimates;
 use serde::{Deserialize, Serialize};
 use std::fmt;
-use crate::structure::data::estimates::PlanEstimates;
 
 type EstimateDirection = String;
 type NodeType = String;
@@ -168,6 +169,25 @@ impl Default for Plan {
 }
 
 impl Plan {
+    pub fn actuals(&self) -> PlanActuals {
+        PlanActuals {
+            actual_cost: self.actual_cost,
+            actual_duration: self.actual_duration,
+            actual_loops: self.actual_loops,
+            actual_rows: self.actual_rows,
+            actual_startup_time: self.actual_startup_time,
+            actual_total_time: self.actual_total_time,
+        }
+    }
+
+    pub fn set_actuals(&mut self, actuals: PlanActuals) {
+        self.actual_cost = actuals.actual_cost;
+        self.actual_duration = actuals.actual_duration;
+        self.actual_loops = actuals.actual_loops;
+        self.actual_rows = actuals.actual_rows;
+        self.actual_startup_time = actuals.actual_startup_time;
+        self.actual_total_time = actuals.actual_total_time;
+    }
     pub fn estimates(&self) -> PlanEstimates {
         PlanEstimates {
             startup_cost: self.startup_cost,
