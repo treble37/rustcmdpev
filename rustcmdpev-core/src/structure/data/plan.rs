@@ -1,6 +1,7 @@
 //https://github.com/serde-rs/serde/pull/238
 use serde::{Deserialize, Serialize};
 use std::fmt;
+use crate::structure::data::estimates::PlanEstimates;
 
 type EstimateDirection = String;
 type NodeType = String;
@@ -163,5 +164,23 @@ impl Default for Plan {
             total_cost: 0.0,
             plans: Vec::new(),
         }
+    }
+}
+
+impl Plan {
+    pub fn estimates(&self) -> PlanEstimates {
+        PlanEstimates {
+            startup_cost: self.startup_cost,
+            total_cost: self.total_cost,
+            plan_rows: self.plan_rows,
+            plan_width: self.plan_width,
+        }
+    }
+
+    pub fn set_estimates(&mut self, estimates: PlanEstimates) {
+        self.startup_cost = estimates.startup_cost;
+        self.total_cost = estimates.total_cost;
+        self.plan_rows = estimates.plan_rows;
+        self.plan_width = estimates.plan_width;
     }
 }
