@@ -1,5 +1,9 @@
 pub mod actuals;
 pub mod analysis_flags;
+pub mod buffers;
 pub mod estimates;
 pub mod explain;
+pub mod identity;
+pub mod io_timing;
 pub mod plan;
+pub mod predicates;
