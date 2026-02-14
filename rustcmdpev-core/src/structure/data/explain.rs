@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 pub struct Explain {
     //TODO: add Triggers back, add default for plan?
     #[serde(default, rename(deserialize = "Plan"))]
-    pub plan: crate::plan::Plan,
+    pub plan: crate::structure::data::plan::Plan,
     #[serde(default, rename(deserialize = "Planning Time"))]
     pub planning_time: f64,
     #[serde(default, rename(deserialize = "Execution Time"))]
@@ -22,7 +22,7 @@ pub struct Explain {
 impl Default for Explain {
     fn default() -> Explain {
         Explain {
-            plan: crate::plan::Plan {
+            plan: crate::structure::data::plan::Plan {
                 ..Default::default()
             },
             planning_time: 0.0,

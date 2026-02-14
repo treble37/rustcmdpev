@@ -8,5 +8,5 @@ fn main() {
         input.push(line.clone());
     }
     let joined_input: String = input[0..].join("\n");
-    rustcmdpev::visualize(joined_input, 60);
+    rustcmdpev_core::visualize(joined_input, 60);
 }

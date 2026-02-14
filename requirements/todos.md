@@ -67,7 +67,7 @@ Single consolidated checklist for MVP v1 feature parity with `gocmdpev`, plus im
 ## P1 (should ship shortly after MVP cut)
 
 ### Architecture and maintainability
-- [ ] Convert to a workspace with `rustcmdpev-core` (lib) and `rustcmdpev` (bin).
+- [x] Convert to a workspace with `rustcmdpev-core` (lib) and `rustcmdpev` (bin).
 - [ ] Finalize render module boundaries (`display/colors`, `display/tree`, `display/format`).
 - [ ] Refactor large `Plan` model into grouped sub-structs where practical.
 - [ ] Improve function signatures by introducing context structs and reducing large parameter lists.
