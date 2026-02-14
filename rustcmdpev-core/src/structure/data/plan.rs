@@ -1,5 +1,6 @@
 //https://github.com/serde-rs/serde/pull/238
 use crate::structure::data::actuals::PlanActuals;
+use crate::structure::data::analysis_flags::PlanAnalysisFlags;
 use crate::structure::data::estimates::PlanEstimates;
 use serde::{Deserialize, Serialize};
 use std::fmt;
@@ -169,6 +170,24 @@ impl Default for Plan {
 }
 
 impl Plan {
+    pub fn analysis_flags(&self) -> PlanAnalysisFlags {
+        PlanAnalysisFlags {
+            costliest: self.costliest,
+            largest: self.largest,
+            slowest: self.slowest,
+            planner_row_estimate_direction: self.planner_row_estimate_direction.clone(),
+            planner_row_estimate_factor: self.planner_row_estimate_factor,
+        }
+    }
+
+    pub fn set_analysis_flags(&mut self, analysis_flags: PlanAnalysisFlags) {
+        self.costliest = analysis_flags.costliest;
+        self.largest = analysis_flags.largest;
+        self.slowest = analysis_flags.slowest;
+        self.planner_row_estimate_direction = analysis_flags.planner_row_estimate_direction;
+        self.planner_row_estimate_factor = analysis_flags.planner_row_estimate_factor;
+    }
+
     pub fn actuals(&self) -> PlanActuals {
         PlanActuals {
             actual_cost: self.actual_cost,
