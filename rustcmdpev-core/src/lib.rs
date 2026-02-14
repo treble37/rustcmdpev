@@ -34,24 +34,24 @@ static DESCRIPTIONS: phf::Map<&'static str, &'static str> = phf_map! {
 // https://www.forrestthewoods.com/blog/should-small-rust-structs-be-passed-by-copy-or-by-borrow/
 pub fn calculate_planner_estimate(plan: plan::Plan) -> plan::Plan {
     let mut new_plan: plan::Plan = plan;
-    new_plan.planner_row_estimate_factor = 0.0;
+    new_plan.analysis_flags.planner_row_estimate_factor = 0.0;
 
-    if new_plan.plan_rows == new_plan.actual_rows {
+    if new_plan.estimates.plan_rows == new_plan.actuals.actual_rows {
         return new_plan;
     }
 
-    new_plan.planner_row_estimate_direction = UNDER.to_string();
-    if new_plan.plan_rows != 0 {
-        new_plan.planner_row_estimate_factor =
-            new_plan.actual_rows as f64 / new_plan.plan_rows as f64;
+    new_plan.analysis_flags.planner_row_estimate_direction = UNDER.to_string();
+    if new_plan.estimates.plan_rows != 0 {
+        new_plan.analysis_flags.planner_row_estimate_factor =
+            new_plan.actuals.actual_rows as f64 / new_plan.estimates.plan_rows as f64;
     }
 
-    if new_plan.planner_row_estimate_factor < 1.0 {
-        new_plan.planner_row_estimate_factor = 0.0;
-        new_plan.planner_row_estimate_direction = OVER.to_string();
-        if new_plan.actual_rows != 0 {
-            new_plan.planner_row_estimate_factor =
-                new_plan.plan_rows as f64 / new_plan.actual_rows as f64;
+    if new_plan.analysis_flags.planner_row_estimate_factor < 1.0 {
+        new_plan.analysis_flags.planner_row_estimate_factor = 0.0;
+        new_plan.analysis_flags.planner_row_estimate_direction = OVER.to_string();
+        if new_plan.actuals.actual_rows != 0 {
+            new_plan.analysis_flags.planner_row_estimate_factor =
+                new_plan.estimates.plan_rows as f64 / new_plan.actuals.actual_rows as f64;
         }
     }
     new_plan
@@ -63,42 +63,44 @@ pub fn calculate_actuals(
 ) -> (explain::Explain, plan::Plan) {
     let mut new_plan: plan::Plan = plan;
     let mut new_explain: explain::Explain = explain;
-    new_plan.actual_duration = new_plan.actual_total_time;
-    new_plan.actual_cost = new_plan.total_cost;
+    new_plan.actuals.actual_duration = new_plan.actuals.actual_total_time;
+    new_plan.actuals.actual_cost = new_plan.estimates.total_cost;
     for child_plan in new_plan.plans.iter() {
         if child_plan.node_type != CTE_SCAN {
-            new_plan.actual_duration -= child_plan.actual_total_time;
-            new_plan.actual_cost -= child_plan.total_cost;
+            new_plan.actuals.actual_duration -= child_plan.actuals.actual_total_time;
+            new_plan.actuals.actual_cost -= child_plan.estimates.total_cost;
         }
     }
-    if new_plan.actual_cost < 0.0 {
-        new_plan.actual_cost = 0.0;
+    if new_plan.actuals.actual_cost < 0.0 {
+        new_plan.actuals.actual_cost = 0.0;
     }
 
-    new_explain.total_cost += new_plan.actual_cost;
-    new_plan.actual_duration *= new_plan.actual_loops as f64;
+    new_explain.total_cost += new_plan.actuals.actual_cost;
+    new_plan.actuals.actual_duration *= new_plan.actuals.actual_loops as f64;
     (new_explain, new_plan)
 }
 
 pub fn calculate_maximums(explain: explain::Explain, plan: plan::Plan) -> explain::Explain {
     let mut new_explain: explain::Explain = explain;
-    if new_explain.max_rows < plan.actual_rows {
-        new_explain.max_rows = plan.actual_rows
+    if new_explain.max_rows < plan.actuals.actual_rows {
+        new_explain.max_rows = plan.actuals.actual_rows
     }
-    if new_explain.max_cost < plan.actual_cost {
-        new_explain.max_cost = plan.actual_cost
+    if new_explain.max_cost < plan.actuals.actual_cost {
+        new_explain.max_cost = plan.actuals.actual_cost
     }
-    if new_explain.max_duration < plan.actual_duration {
-        new_explain.max_duration = plan.actual_duration
+    if new_explain.max_duration < plan.actuals.actual_duration {
+        new_explain.max_duration = plan.actuals.actual_duration
     }
     new_explain
 }
 
 pub fn calculate_outlier_nodes(explain: explain::Explain, plan: plan::Plan) -> plan::Plan {
     let mut new_plan: plan::Plan = plan;
-    new_plan.costliest = (new_plan.actual_cost - explain.max_cost).abs() < DELTA_ERROR;
-    new_plan.largest = new_plan.actual_rows == explain.max_rows;
-    new_plan.slowest = (new_plan.actual_duration - explain.max_duration).abs() < DELTA_ERROR;
+    new_plan.analysis_flags.costliest =
+        (new_plan.actuals.actual_cost - explain.max_cost).abs() < DELTA_ERROR;
+    new_plan.analysis_flags.largest = new_plan.actuals.actual_rows == explain.max_rows;
+    new_plan.analysis_flags.slowest =
+        (new_plan.actuals.actual_duration - explain.max_duration).abs() < DELTA_ERROR;
     for child_plan in new_plan.plans.iter_mut() {
         *child_plan = calculate_outlier_nodes(explain.clone(), child_plan.clone());
     }
@@ -221,19 +223,19 @@ pub fn write_plan(
     println!(
         "{}○ Duration: {} {}",
         color_format(current_prefix.clone(), "prefix"),
-        duration_to_string(plan.actual_duration),
-        format_percent((plan.actual_duration / explain.execution_time) * 100.0, 1)
+        duration_to_string(plan.actuals.actual_duration),
+        format_percent((plan.actuals.actual_duration / explain.execution_time) * 100.0, 1)
     );
     println!(
         "{}○ Cost: {} {}",
         color_format(current_prefix.clone(), "prefix"),
-        duration_to_string(plan.actual_cost),
-        format_percent((plan.actual_cost / explain.total_cost) * 100.0, 1)
+        duration_to_string(plan.actuals.actual_cost),
+        format_percent((plan.actuals.actual_cost / explain.total_cost) * 100.0, 1)
     );
     println!(
         "{}○ Rows: {}",
         color_format(current_prefix.clone(), "prefix"),
-        plan.actual_rows
+        plan.actuals.actual_rows
     );
     current_prefix += "  ";
 
@@ -298,14 +300,14 @@ pub fn write_plan(
         )
     }
 
-    if plan.planner_row_estimate_factor != 0.0 {
+    if plan.analysis_flags.planner_row_estimate_factor != 0.0 {
         println!(
             "{}{} {}estimated {} {:.2}x",
             color_format(current_prefix.clone(), "prefix"),
             color_format("rows".to_string(), "muted"),
-            plan.planner_row_estimate_direction,
+            plan.analysis_flags.planner_row_estimate_direction,
             color_format("by".to_string(), "muted"),
-            plan.planner_row_estimate_factor
+            plan.analysis_flags.planner_row_estimate_factor
         )
     }
 

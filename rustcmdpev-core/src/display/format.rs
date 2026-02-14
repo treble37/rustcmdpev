@@ -34,16 +34,16 @@ pub fn format_details(plan: plan::Plan) -> String {
 pub fn format_tags(plan: plan::Plan) -> String {
     let mut tags = vec![];
 
-    if plan.slowest {
+    if plan.analysis_flags.slowest {
         tags.push(" slowest ");
     }
-    if plan.costliest {
+    if plan.analysis_flags.costliest {
         tags.push(" costliest ");
     }
-    if plan.largest {
+    if plan.analysis_flags.largest {
         tags.push(" largest ");
     }
-    if plan.planner_row_estimate_factor >= 100.0 {
+    if plan.analysis_flags.planner_row_estimate_factor >= 100.0 {
         tags.push(" bad estimate ");
     }
     tags.join(" ")

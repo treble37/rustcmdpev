@@ -134,8 +134,8 @@ mod tests {
         assert_eq!(explain.planning_time, 8.116);
         assert_eq!(explain.plan.alias, "");
         assert_eq!(explain.plan.node_type, "Hash Join");
-        assert_eq!(explain.plan.plan_rows, 231);
-        assert_eq!(explain.plan.plan_width, 1639);
+        assert_eq!(explain.plan.estimates.plan_rows, 231);
+        assert_eq!(explain.plan.estimates.plan_width, 1639);
         assert_eq!(explain.plan.relation_name, "");
     }
     #[test]

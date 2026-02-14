@@ -5,28 +5,17 @@ use crate::structure::data::estimates::PlanEstimates;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
-type EstimateDirection = String;
 type NodeType = String;
 
 /// The Plan struct
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Plan {
-    #[serde(default, rename(deserialize = "Actual Cost"))]
-    pub actual_cost: f64,
-    #[serde(default, rename(deserialize = "Actual Duration"))]
-    pub actual_duration: f64,
-    #[serde(default, rename(deserialize = "Actual Loops"))]
-    pub actual_loops: u64,
-    #[serde(default, rename(deserialize = "Actual Rows"))]
-    pub actual_rows: u64,
-    #[serde(default, rename(deserialize = "Actual Startup Time"))]
-    pub actual_startup_time: f64,
-    #[serde(default, rename(deserialize = "Actual Total Time"))]
-    pub actual_total_time: f64,
+    #[serde(flatten)]
+    pub actuals: PlanActuals,
+    #[serde(flatten)]
+    pub analysis_flags: PlanAnalysisFlags,
     #[serde(default, rename(deserialize = "Alias"))]
     pub alias: String,
-    #[serde(default, rename(deserialize = "Costliest"))]
-    pub costliest: bool,
     #[serde(default, rename(deserialize = "CTE Name"))]
     pub cte_name: String,
     #[serde(default, rename(deserialize = "Filter"))]
@@ -47,8 +36,6 @@ pub struct Plan {
     pub io_write_time: f64,
     #[serde(default, rename(deserialize = "Join Type"))]
     pub join_type: String,
-    #[serde(default)]
-    pub largest: bool,
     #[serde(default, rename(deserialize = "Local Dirtied Blocks"))]
     pub local_dirtied_blocks: u64,
     #[serde(default, rename(deserialize = "Local Hit Blocks"))]
@@ -63,14 +50,8 @@ pub struct Plan {
     pub output: Vec<String>,
     #[serde(default, rename(deserialize = "Parent Relationship"))]
     pub parent_relationship: String,
-    #[serde(default)]
-    pub planner_row_estimate_direction: EstimateDirection,
-    #[serde(default)]
-    pub planner_row_estimate_factor: f64,
-    #[serde(default, rename(deserialize = "Plan Rows"))]
-    pub plan_rows: u64,
-    #[serde(default, rename(deserialize = "Plan Width"))]
-    pub plan_width: u64,
+    #[serde(flatten)]
+    pub estimates: PlanEstimates,
     #[serde(default, rename(deserialize = "Relation Name"))]
     pub relation_name: String,
     #[serde(default, rename(deserialize = "Rows Removed By Filter"))]
@@ -89,18 +70,12 @@ pub struct Plan {
     pub shared_read_blocks: u64,
     #[serde(default, rename(deserialize = "Shared Written Blocks"))]
     pub shared_written_blocks: u64,
-    #[serde(default)]
-    pub slowest: bool,
-    #[serde(default, rename(deserialize = "Startup Cost"))]
-    pub startup_cost: f64,
     #[serde(default, rename(deserialize = "Strategy"))]
     pub strategy: String,
     #[serde(default, rename(deserialize = "Temp Read Blocks"))]
     pub temp_read_blocks: u64,
     #[serde(default, rename(deserialize = "Temp Written Blocks"))]
     pub temp_written_blocks: u64,
-    #[serde(default, rename(deserialize = "Total Cost"))]
-    pub total_cost: f64,
     #[serde(default, rename(deserialize = "Plans"))]
     pub plans: Vec<Plan>,
 }
@@ -119,14 +94,9 @@ impl fmt::Display for Plan {
 impl Default for Plan {
     fn default() -> Plan {
         Plan {
-            actual_cost: 0.0,
-            actual_duration: 0.0,
-            actual_loops: 0,
-            actual_rows: 0,
-            actual_startup_time: 0.0,
-            actual_total_time: 0.0,
+            actuals: PlanActuals::default(),
+            analysis_flags: PlanAnalysisFlags::default(),
             alias: String::from(""),
-            costliest: false,
             cte_name: String::from(""),
             filter: String::from(""),
             group_key: Vec::new(),
@@ -137,7 +107,6 @@ impl Default for Plan {
             io_read_time: 0.0,
             io_write_time: 0.0,
             join_type: String::from(""),
-            largest: false,
             local_dirtied_blocks: 0,
             local_hit_blocks: 0,
             local_read_blocks: 0,
@@ -145,10 +114,7 @@ impl Default for Plan {
             node_type: String::from(""),
             output: Vec::new(),
             parent_relationship: String::from(""),
-            planner_row_estimate_direction: String::from(""),
-            planner_row_estimate_factor: 0.0,
-            plan_rows: 0,
-            plan_width: 0,
+            estimates: PlanEstimates::default(),
             relation_name: String::from(""),
             rows_removed_by_filter: 0,
             rows_removed_by_index_recheck: 0,
@@ -158,12 +124,9 @@ impl Default for Plan {
             shared_hit_blocks: 0,
             shared_read_blocks: 0,
             shared_written_blocks: 0,
-            slowest: false,
-            startup_cost: 0.0,
             strategy: String::from(""),
             temp_read_blocks: 0,
             temp_written_blocks: 0,
-            total_cost: 0.0,
             plans: Vec::new(),
         }
     }
@@ -171,55 +134,26 @@ impl Default for Plan {
 
 impl Plan {
     pub fn analysis_flags(&self) -> PlanAnalysisFlags {
-        PlanAnalysisFlags {
-            costliest: self.costliest,
-            largest: self.largest,
-            slowest: self.slowest,
-            planner_row_estimate_direction: self.planner_row_estimate_direction.clone(),
-            planner_row_estimate_factor: self.planner_row_estimate_factor,
-        }
+        self.analysis_flags.clone()
     }
 
     pub fn set_analysis_flags(&mut self, analysis_flags: PlanAnalysisFlags) {
-        self.costliest = analysis_flags.costliest;
-        self.largest = analysis_flags.largest;
-        self.slowest = analysis_flags.slowest;
-        self.planner_row_estimate_direction = analysis_flags.planner_row_estimate_direction;
-        self.planner_row_estimate_factor = analysis_flags.planner_row_estimate_factor;
+        self.analysis_flags = analysis_flags;
     }
 
     pub fn actuals(&self) -> PlanActuals {
-        PlanActuals {
-            actual_cost: self.actual_cost,
-            actual_duration: self.actual_duration,
-            actual_loops: self.actual_loops,
-            actual_rows: self.actual_rows,
-            actual_startup_time: self.actual_startup_time,
-            actual_total_time: self.actual_total_time,
-        }
+        self.actuals.clone()
     }
 
     pub fn set_actuals(&mut self, actuals: PlanActuals) {
-        self.actual_cost = actuals.actual_cost;
-        self.actual_duration = actuals.actual_duration;
-        self.actual_loops = actuals.actual_loops;
-        self.actual_rows = actuals.actual_rows;
-        self.actual_startup_time = actuals.actual_startup_time;
-        self.actual_total_time = actuals.actual_total_time;
+        self.actuals = actuals;
     }
+
     pub fn estimates(&self) -> PlanEstimates {
-        PlanEstimates {
-            startup_cost: self.startup_cost,
-            total_cost: self.total_cost,
-            plan_rows: self.plan_rows,
-            plan_width: self.plan_width,
-        }
+        self.estimates.clone()
     }
 
     pub fn set_estimates(&mut self, estimates: PlanEstimates) {
-        self.startup_cost = estimates.startup_cost;
-        self.total_cost = estimates.total_cost;
-        self.plan_rows = estimates.plan_rows;
-        self.plan_width = estimates.plan_width;
+        self.estimates = estimates;
     }
 }
