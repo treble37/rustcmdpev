@@ -46,6 +46,14 @@ On MacOS you can just grab a query on your clipboard and run this one-liner:
 pbpaste | sed '1s/^/EXPLAIN (ANALYZE, COSTS, VERBOSE, BUFFERS, FORMAT JSON) /' | psql -qXAt <DATABASE> | rustcmdpev
 ```
 
+### Stdin JSON contract (MVP parity)
+
+- When `--input` is not provided, stdin must contain JSON text.
+- Top-level JSON must be an array with at least one object containing `Plan`.
+- Empty stdin, invalid JSON, or unsupported top-level shape are contract errors and should exit non-zero.
+
+Source of truth: `docs/src/parity.md` -> "MVP v1 stdin JSON contract".
+
 ### CLI flags
 
 ```bash

@@ -1,4 +1,5 @@
 use clap::{Parser, ValueEnum};
+use serde_json::Value;
 use std::fs;
 use std::io::{self, Read};
 use std::path::PathBuf;
@@ -59,6 +60,26 @@ fn read_input(input: Option<&PathBuf>) -> Result<String, String> {
     Ok(buffer)
 }
 
+fn validate_stdin_json_contract(input: &str) -> Result<(), String> {
+    let parsed: Value =
+        serde_json::from_str(input).map_err(|err| format!("invalid JSON input: {err}"))?;
+
+    let arr = parsed
+        .as_array()
+        .ok_or_else(|| "top-level JSON must be an array".to_string())?;
+    let first = arr
+        .first()
+        .ok_or_else(|| "top-level JSON array must contain at least one explain object".to_string())?;
+    let first_obj = first
+        .as_object()
+        .ok_or_else(|| "first explain entry must be a JSON object".to_string())?;
+
+    match first_obj.get("Plan") {
+        Some(Value::Object(_)) => Ok(()),
+        _ => Err("first explain object must contain 'Plan' object".to_string()),
+    }
+}
+
 fn run() -> Result<(), String> {
     let cli = Cli::parse();
     let input = read_input(cli.input.as_ref())?;
@@ -69,6 +90,7 @@ fn run() -> Result<(), String> {
 
     match cli.format {
         OutputFormat::Pretty => {
+            validate_stdin_json_contract(&input)?;
             rustcmdpev_core::visualize(input, cli.width);
             Ok(())
         }
