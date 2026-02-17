@@ -32,8 +32,8 @@ struct Cli {
     format: OutputFormat,
     #[arg(long, value_enum, default_value_t = ColorMode::Auto)]
     color: ColorMode,
-    #[arg(long, default_value_t = 60)]
-    width: usize,
+    #[arg(long)]
+    width: Option<usize>,
     #[arg(long)]
     compat: bool,
     #[arg(short = 'v', long, action = clap::ArgAction::Count)]
@@ -86,12 +86,25 @@ fn run() -> Result<(), String> {
 
     // Color/compat/verbosity parsing is now in place for parity; rendering behavior
     // will be fully wired in a follow-up change.
-    let _ = (cli.color, cli.compat, cli.verbose, cli.quiet);
+    let _ = (cli.color, cli.verbose, cli.quiet);
+
+    if cli.compat && cli.format != OutputFormat::Pretty {
+        return Err("--compat currently supports only --format pretty".to_string());
+    }
+
+    let width = match (cli.compat, cli.width) {
+        (true, Some(60)) | (true, None) => 60,
+        (true, Some(_)) => {
+            return Err("--compat requires --width 60 for parity-target output".to_string());
+        }
+        (false, Some(width)) => width,
+        (false, None) => 60,
+    };
 
     match cli.format {
         OutputFormat::Pretty => {
             validate_stdin_json_contract(&input)?;
-            rustcmdpev_core::visualize(input, cli.width);
+            rustcmdpev_core::visualize(input, width);
             Ok(())
         }
         OutputFormat::Json => Err(

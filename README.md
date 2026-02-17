@@ -64,7 +64,7 @@ rustcmdpev [--input <PATH>] [--format pretty|json|table] [--color auto|always|ne
 - `--format`: output format (`pretty` implemented; `json` and `table` are placeholders in this first cut)
 - `--color`: parse color policy (`auto|always|never`) for upcoming renderer wiring
 - `--width`: tree render width (default: `60`)
-- `--compat`: parse compatibility mode flag for parity-target behavior
+- `--compat`: parity-target mode (`--format pretty` only, legacy width `60`)
 - `-v, --verbose`: increase verbosity level (`-vv` supported)
 - `-q, --quiet`: quiet mode flag
 
