@@ -11,7 +11,7 @@ It started out being ported from [gocmdpev](https://github.com/simon-engledew/go
 
 # Documentation
 
-- Deep dive: `CODEBASE_OVERVIEW.md`
+- Deep dive: `requirements/CODEBASE_OVERVIEW.md`
 - Docs site source: `docs/`
 - Docs site instructions: `docs/README.md`
 - Build the docs site (requires `mdbook`):
@@ -46,12 +46,32 @@ On MacOS you can just grab a query on your clipboard and run this one-liner:
 pbpaste | sed '1s/^/EXPLAIN (ANALYZE, COSTS, VERBOSE, BUFFERS, FORMAT JSON) /' | psql -qXAt <DATABASE> | rustcmdpev
 ```
 
+### CLI flags
+
+```bash
+rustcmdpev [--input <PATH>] [--format pretty|json|table] [--color auto|always|never] [--width <N>] [--compat]
+```
+
+- `--input, -i <PATH>`: read EXPLAIN JSON from a file instead of stdin
+- `--format`: output format (`pretty` implemented; `json` and `table` are placeholders in this first cut)
+- `--color`: parse color policy (`auto|always|never`) for upcoming renderer wiring
+- `--width`: tree render width (default: `60`)
+- `--compat`: parse compatibility mode flag for parity-target behavior
+- `-v, --verbose`: increase verbosity level (`-vv` supported)
+- `-q, --quiet`: quiet mode flag
+
+Run help:
+
+```bash
+rustcmdpev --help
+```
+
 ## Local development
 
 ### View sample output
 
 ```
-cargo run -- '[{"Plan":{"Alias":"c0","Node Type":"Seq Scan","Parallel Aware":false,"Plan Rows":50,"Plan Width":1572,"Relation Name":"coaches","Startup Cost":0.0,"Total Cost":10.5}}]'
+echo '[{"Plan":{"Alias":"c0","Node Type":"Seq Scan","Parallel Aware":false,"Plan Rows":50,"Plan Width":1572,"Relation Name":"coaches","Startup Cost":0.0,"Total Cost":10.5}}]' | cargo run -p rustcmdpev -- --format pretty --width 80
 ```
 
 ## Testing

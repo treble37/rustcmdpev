@@ -1,12 +1,92 @@
-use std::io::{self, BufRead};
+use clap::{Parser, ValueEnum};
+use std::fs;
+use std::io::{self, Read};
+use std::path::PathBuf;
+use std::process::ExitCode;
 
-fn main() {
-    let stdin = io::stdin();
-    let mut input: Vec<String> = vec![];
-    for line in stdin.lock().lines() {
-        let line = line.expect("Could not read line from standard input.");
-        input.push(line.clone());
+#[derive(Copy, Clone, Debug, Eq, PartialEq, ValueEnum)]
+enum OutputFormat {
+    Pretty,
+    Json,
+    Table,
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq, ValueEnum)]
+enum ColorMode {
+    Auto,
+    Always,
+    Never,
+}
+
+#[derive(Debug, Parser)]
+#[command(
+    name = "rustcmdpev",
+    about = "Visualize PostgreSQL EXPLAIN JSON output",
+    version
+)]
+struct Cli {
+    #[arg(long, short, value_name = "PATH")]
+    input: Option<PathBuf>,
+    #[arg(long, value_enum, default_value_t = OutputFormat::Pretty)]
+    format: OutputFormat,
+    #[arg(long, value_enum, default_value_t = ColorMode::Auto)]
+    color: ColorMode,
+    #[arg(long, default_value_t = 60)]
+    width: usize,
+    #[arg(long)]
+    compat: bool,
+    #[arg(short = 'v', long, action = clap::ArgAction::Count)]
+    verbose: u8,
+    #[arg(short = 'q', long)]
+    quiet: bool,
+}
+
+fn read_input(input: Option<&PathBuf>) -> Result<String, String> {
+    if let Some(path) = input {
+        return fs::read_to_string(path)
+            .map_err(|err| format!("failed to read input file '{}': {err}", path.display()));
     }
-    let joined_input: String = input[0..].join("\n");
-    rustcmdpev_core::visualize(joined_input, 60);
+
+    let mut buffer = String::new();
+    io::stdin()
+        .read_to_string(&mut buffer)
+        .map_err(|err| format!("failed to read stdin: {err}"))?;
+    if buffer.trim().is_empty() {
+        return Err(
+            "no input provided; pass JSON via stdin or --input <PATH> (try --help)".to_string(),
+        );
+    }
+    Ok(buffer)
+}
+
+fn run() -> Result<(), String> {
+    let cli = Cli::parse();
+    let input = read_input(cli.input.as_ref())?;
+
+    // Color/compat/verbosity parsing is now in place for parity; rendering behavior
+    // will be fully wired in a follow-up change.
+    let _ = (cli.color, cli.compat, cli.verbose, cli.quiet);
+
+    match cli.format {
+        OutputFormat::Pretty => {
+            rustcmdpev_core::visualize(input, cli.width);
+            Ok(())
+        }
+        OutputFormat::Json => Err(
+            "--format json is parsed but not implemented yet; use --format pretty".to_string(),
+        ),
+        OutputFormat::Table => Err(
+            "--format table is parsed but not implemented yet; use --format pretty".to_string(),
+        ),
+    }
+}
+
+fn main() -> ExitCode {
+    match run() {
+        Ok(()) => ExitCode::SUCCESS,
+        Err(err) => {
+            eprintln!("error: {err}");
+            ExitCode::from(1)
+        }
+    }
 }
