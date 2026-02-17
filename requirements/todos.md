@@ -15,7 +15,7 @@ Single consolidated checklist for MVP v1 feature parity with `gocmdpev`, plus im
 ### CLI, input, and output compatibility
 - [x] Add `clap`-based CLI with documented flags and help output.
 - [x] Define and document stdin JSON contract for MVP parity behavior.
-- [ ] Support input from file (`--input`) in addition to stdin.
+- [x] Support input from file (`--input`) in addition to stdin.
 - [ ] Add `--compat` mode for parity-target rendering behavior.
 - [ ] Support output formats required for parity (`pretty`, `json`, `table`).
 - [ ] Support `--color auto|always|never`, TTY detection, and `NO_COLOR`.
