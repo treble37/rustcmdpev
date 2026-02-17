@@ -1,4 +1,5 @@
 use clap::{Parser, ValueEnum};
+use rustcmdpev_core::structure::data::explain::Explain;
 use serde_json::Value;
 use std::fs;
 use std::io::{self, Read};
@@ -80,6 +81,53 @@ fn validate_stdin_json_contract(input: &str) -> Result<(), String> {
     }
 }
 
+fn parse_and_process_explain(input: &str) -> Result<Explain, String> {
+    let explains: Vec<Explain> =
+        serde_json::from_str(input).map_err(|err| format!("invalid JSON input: {err}"))?;
+    let explain = explains
+        .into_iter()
+        .next()
+        .ok_or_else(|| "top-level JSON array must contain at least one explain object".to_string())?;
+    Ok(rustcmdpev_core::process_all(explain))
+}
+
+fn write_table(explain: &Explain) {
+    println!("NODE | DURATION_MS | COST | ROWS | TAGS");
+    println!("-----|-------------|------|------|-----");
+    write_table_plan(&explain.plan, 0);
+}
+
+fn write_table_plan(plan: &rustcmdpev_core::structure::data::plan::Plan, depth: usize) {
+    let indent = "  ".repeat(depth);
+    let mut tags: Vec<&str> = Vec::new();
+    if plan.analysis_flags.slowest {
+        tags.push("slowest");
+    }
+    if plan.analysis_flags.costliest {
+        tags.push("costliest");
+    }
+    if plan.analysis_flags.largest {
+        tags.push("largest");
+    }
+    if plan.analysis_flags.planner_row_estimate_factor >= 100.0 {
+        tags.push("bad_estimate");
+    }
+
+    println!(
+        "{}{} | {:.3} | {:.3} | {} | {}",
+        indent,
+        plan.node_type,
+        plan.actuals.actual_duration,
+        plan.actuals.actual_cost,
+        plan.actuals.actual_rows,
+        tags.join(",")
+    );
+
+    for child in &plan.plans {
+        write_table_plan(child, depth + 1);
+    }
+}
+
 fn run() -> Result<(), String> {
     let cli = Cli::parse();
     let input = read_input(cli.input.as_ref())?;
@@ -107,12 +155,20 @@ fn run() -> Result<(), String> {
             rustcmdpev_core::visualize(input, width);
             Ok(())
         }
-        OutputFormat::Json => Err(
-            "--format json is parsed but not implemented yet; use --format pretty".to_string(),
-        ),
-        OutputFormat::Table => Err(
-            "--format table is parsed but not implemented yet; use --format pretty".to_string(),
-        ),
+        OutputFormat::Json => {
+            validate_stdin_json_contract(&input)?;
+            let explain = parse_and_process_explain(&input)?;
+            let output = serde_json::to_string_pretty(&explain)
+                .map_err(|err| format!("failed to serialize JSON output: {err}"))?;
+            println!("{output}");
+            Ok(())
+        }
+        OutputFormat::Table => {
+            validate_stdin_json_contract(&input)?;
+            let explain = parse_and_process_explain(&input)?;
+            write_table(&explain);
+            Ok(())
+        }
     }
 }
 
