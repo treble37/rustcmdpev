@@ -125,7 +125,8 @@ mod tests {
                 "Execution Time": 2.776
               }
             ]"#;
-        let explain: explain::Explain = rustcmdpev_core::visualize(input.to_string(), 60);
+        let explain: explain::Explain = rustcmdpev_core::visualize(input.to_string(), 60)
+            .expect("expected valid explain input to render");
         assert_eq!(explain.total_cost, 25.1);
         assert_eq!(explain.max_cost, 13.31);
         assert_eq!(explain.max_rows, 231);
@@ -141,7 +142,8 @@ mod tests {
     #[test]
     fn test_with_missing_node_type_plan_field() {
         let input = r#"[{"Plan": {"Alias": "c0"}}]"#;
-        let explain: explain::Explain = rustcmdpev_core::visualize(input.to_string(), 60);
+        let explain: explain::Explain = rustcmdpev_core::visualize(input.to_string(), 60)
+            .expect("expected valid explain input to render");
         assert_eq!(explain.total_cost, 0.0);
     }
 }

@@ -205,7 +205,8 @@ fn run() -> Result<(), String> {
         OutputFormat::Pretty => {
             info!("rendering pretty output");
             validate_stdin_json_contract(&input)?;
-            rustcmdpev_core::visualize(input, width);
+            rustcmdpev_core::visualize(input, width)
+                .map_err(|err| format!("failed to render pretty output: {err}"))?;
             Ok(())
         }
         OutputFormat::Json => {

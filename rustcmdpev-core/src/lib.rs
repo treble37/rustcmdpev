@@ -1,4 +1,6 @@
 use phf::phf_map;
+use std::error::Error;
+use std::fmt;
 pub mod display;
 pub mod structure;
 use display::colors::color_format;
@@ -11,6 +13,25 @@ const OVER: &str = "Over";
 const CTE_SCAN: &str = "CTE Scan";
 
 const DELTA_ERROR: f64 = 0.001;
+
+#[derive(Debug)]
+pub enum VisualizeError {
+    InvalidJson(serde_json::Error),
+    EmptyExplainArray,
+}
+
+impl fmt::Display for VisualizeError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            VisualizeError::InvalidJson(err) => write!(f, "invalid JSON input: {err}"),
+            VisualizeError::EmptyExplainArray => {
+                write!(f, "top-level JSON array must contain at least one explain object")
+            }
+        }
+    }
+}
+
+impl Error for VisualizeError {}
 
 static DESCRIPTIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "Append" =>          "Used in a UNION to merge multiple record sets by appending them together.",
@@ -337,10 +358,14 @@ pub fn write_plan(
     }
 }
 
-pub fn visualize(input: String, width: usize) -> explain::Explain {
-    let explains: Vec<explain::Explain> = serde_json::from_str(input.as_str()).unwrap();
-    let mut explain: explain::Explain = explains.into_iter().next().unwrap();
+pub fn visualize(input: String, width: usize) -> Result<explain::Explain, VisualizeError> {
+    let explains: Vec<explain::Explain> =
+        serde_json::from_str(input.as_str()).map_err(VisualizeError::InvalidJson)?;
+    let mut explain: explain::Explain = explains
+        .into_iter()
+        .next()
+        .ok_or(VisualizeError::EmptyExplainArray)?;
     explain = process_all(explain);
     write_explain(explain.clone(), width);
-    explain
+    Ok(explain)
 }

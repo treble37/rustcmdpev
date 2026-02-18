@@ -23,7 +23,7 @@ Single consolidated checklist for MVP v1 feature parity with `gocmdpev`, plus im
 - [x] Add verbose/quiet modes and structured logging (`tracing` + `tracing-subscriber`).
 
 ### Safety and error handling
-- [ ] Remove panic paths (`unwrap`/`expect`) from core parse/process flow for valid inputs.
+- [x] Remove panic paths (`unwrap`/`expect`) from core parse/process flow for valid inputs.
 - [ ] Return typed errors from core processing path and map them to CLI exit codes.
 - [ ] Return non-zero exit code for empty stdin input with actionable error text.
 - [ ] Return non-zero exit code for invalid JSON with actionable error text.
