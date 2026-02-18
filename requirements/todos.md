@@ -20,7 +20,7 @@ Single consolidated checklist for MVP v1 feature parity with `gocmdpev`, plus im
 - [x] Support output formats required for parity (`pretty`, `json`, `table`).
 - [x] Support `--color auto|always|never`, TTY detection, and `NO_COLOR`.
 - [ ] Ensure Windows console color behavior works correctly.
-- [ ] Add verbose/quiet modes and structured logging (`tracing` + `tracing-subscriber`).
+- [x] Add verbose/quiet modes and structured logging (`tracing` + `tracing-subscriber`).
 
 ### Safety and error handling
 - [ ] Remove panic paths (`unwrap`/`expect`) from core parse/process flow for valid inputs.

@@ -65,8 +65,9 @@ rustcmdpev [--input <PATH>] [--format pretty|json|table] [--color auto|always|ne
 - `--color`: color policy (`always` force ANSI, `never` disable, `auto` = TTY-detect and respect `NO_COLOR`)
 - `--width`: tree render width (default: `60`)
 - `--compat`: parity-target mode (`--format pretty` only, legacy width `60`)
-- `-v, --verbose`: increase verbosity level (`-vv` supported)
-- `-q, --quiet`: quiet mode flag
+- `-v, --verbose`: increase log verbosity (`warn` default, `-v` = `info`, `-vv`+ = `debug`)
+- `-q, --quiet`: reduce logs to `error` only
+- `RUST_LOG`: override log filter via `tracing-subscriber` env filter syntax
 
 Run help:
 

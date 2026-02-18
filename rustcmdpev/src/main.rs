@@ -7,6 +7,8 @@ use std::fs;
 use std::io::{self, IsTerminal, Read};
 use std::path::PathBuf;
 use std::process::ExitCode;
+use tracing::{debug, info};
+use tracing_subscriber::EnvFilter;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, ValueEnum)]
 enum OutputFormat {
@@ -39,18 +41,43 @@ struct Cli {
     width: Option<usize>,
     #[arg(long)]
     compat: bool,
-    #[arg(short = 'v', long, action = clap::ArgAction::Count)]
+    #[arg(short = 'v', long, action = clap::ArgAction::Count, conflicts_with = "quiet")]
     verbose: u8,
-    #[arg(short = 'q', long)]
+    #[arg(short = 'q', long, conflicts_with = "verbose")]
     quiet: bool,
+}
+
+fn init_logging(verbose: u8, quiet: bool) {
+    let default_level = if quiet {
+        "error"
+    } else {
+        match verbose {
+            0 => "warn",
+            1 => "info",
+            _ => "debug",
+        }
+    };
+
+    let filter = match EnvFilter::try_from_default_env() {
+        Ok(f) => f,
+        Err(_) => EnvFilter::new(default_level),
+    };
+
+    let _ = tracing_subscriber::fmt()
+        .with_env_filter(filter)
+        .with_target(false)
+        .without_time()
+        .try_init();
 }
 
 fn read_input(input: Option<&PathBuf>) -> Result<String, String> {
     if let Some(path) = input {
+        info!(path = %path.display(), "reading input from file");
         return fs::read_to_string(path)
             .map_err(|err| format!("failed to read input file '{}': {err}", path.display()));
     }
 
+    info!("reading input from stdin");
     let mut buffer = String::new();
     io::stdin()
         .read_to_string(&mut buffer)
@@ -64,6 +91,7 @@ fn read_input(input: Option<&PathBuf>) -> Result<String, String> {
 }
 
 fn validate_stdin_json_contract(input: &str) -> Result<(), String> {
+    debug!("validating stdin JSON contract");
     let parsed: Value =
         serde_json::from_str(input).map_err(|err| format!("invalid JSON input: {err}"))?;
 
@@ -96,6 +124,7 @@ fn configure_color(mode: ColorMode) {
 }
 
 fn parse_and_process_explain(input: &str) -> Result<Explain, String> {
+    debug!("parsing and processing explain payload");
     let explains: Vec<Explain> =
         serde_json::from_str(input).map_err(|err| format!("invalid JSON input: {err}"))?;
     let explain = explains
@@ -144,10 +173,19 @@ fn write_table_plan(plan: &rustcmdpev_core::structure::data::plan::Plan, depth: 
 
 fn run() -> Result<(), String> {
     let cli = Cli::parse();
+    init_logging(cli.verbose, cli.quiet);
+    info!(
+        format = ?cli.format,
+        color = ?cli.color,
+        compat = cli.compat,
+        width = ?cli.width,
+        verbose = cli.verbose,
+        quiet = cli.quiet,
+        "starting rustcmdpev"
+    );
     let input = read_input(cli.input.as_ref())?;
 
     configure_color(cli.color);
-    let _ = (cli.verbose, cli.quiet);
 
     if cli.compat && cli.format != OutputFormat::Pretty {
         return Err("--compat currently supports only --format pretty".to_string());
@@ -161,14 +199,17 @@ fn run() -> Result<(), String> {
         (false, Some(width)) => width,
         (false, None) => 60,
     };
+    debug!(width, "resolved render width");
 
     match cli.format {
         OutputFormat::Pretty => {
+            info!("rendering pretty output");
             validate_stdin_json_contract(&input)?;
             rustcmdpev_core::visualize(input, width);
             Ok(())
         }
         OutputFormat::Json => {
+            info!("rendering json output");
             validate_stdin_json_contract(&input)?;
             let explain = parse_and_process_explain(&input)?;
             let output = serde_json::to_string_pretty(&explain)
@@ -177,6 +218,7 @@ fn run() -> Result<(), String> {
             Ok(())
         }
         OutputFormat::Table => {
+            info!("rendering table output");
             validate_stdin_json_contract(&input)?;
             let explain = parse_and_process_explain(&input)?;
             write_table(&explain);
