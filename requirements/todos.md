@@ -18,7 +18,7 @@ Single consolidated checklist for MVP v1 feature parity with `gocmdpev`, plus im
 - [x] Support input from file (`--input`) in addition to stdin.
 - [x] Add `--compat` mode for parity-target rendering behavior.
 - [x] Support output formats required for parity (`pretty`, `json`, `table`).
-- [ ] Support `--color auto|always|never`, TTY detection, and `NO_COLOR`.
+- [x] Support `--color auto|always|never`, TTY detection, and `NO_COLOR`.
 - [ ] Ensure Windows console color behavior works correctly.
 - [ ] Add verbose/quiet modes and structured logging (`tracing` + `tracing-subscriber`).
 

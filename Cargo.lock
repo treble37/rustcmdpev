@@ -501,6 +501,7 @@ name = "rustcmdpev"
 version = "0.1.0"
 dependencies = [
  "clap",
+ "colored",
  "rustcmdpev-core",
  "serde_json",
 ]

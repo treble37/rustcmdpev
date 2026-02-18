@@ -1,8 +1,10 @@
 use clap::{Parser, ValueEnum};
+use colored::control;
 use rustcmdpev_core::structure::data::explain::Explain;
 use serde_json::Value;
+use std::env;
 use std::fs;
-use std::io::{self, Read};
+use std::io::{self, IsTerminal, Read};
 use std::path::PathBuf;
 use std::process::ExitCode;
 
@@ -81,6 +83,18 @@ fn validate_stdin_json_contract(input: &str) -> Result<(), String> {
     }
 }
 
+fn configure_color(mode: ColorMode) {
+    let use_color = match mode {
+        ColorMode::Always => true,
+        ColorMode::Never => false,
+        ColorMode::Auto => {
+            let no_color = env::var_os("NO_COLOR").is_some();
+            !no_color && io::stdout().is_terminal()
+        }
+    };
+    control::set_override(use_color);
+}
+
 fn parse_and_process_explain(input: &str) -> Result<Explain, String> {
     let explains: Vec<Explain> =
         serde_json::from_str(input).map_err(|err| format!("invalid JSON input: {err}"))?;
@@ -132,9 +146,8 @@ fn run() -> Result<(), String> {
     let cli = Cli::parse();
     let input = read_input(cli.input.as_ref())?;
 
-    // Color/compat/verbosity parsing is now in place for parity; rendering behavior
-    // will be fully wired in a follow-up change.
-    let _ = (cli.color, cli.verbose, cli.quiet);
+    configure_color(cli.color);
+    let _ = (cli.verbose, cli.quiet);
 
     if cli.compat && cli.format != OutputFormat::Pretty {
         return Err("--compat currently supports only --format pretty".to_string());

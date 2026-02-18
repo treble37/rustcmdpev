@@ -62,7 +62,7 @@ rustcmdpev [--input <PATH>] [--format pretty|json|table] [--color auto|always|ne
 
 - `--input, -i <PATH>`: read EXPLAIN JSON from a file instead of stdin
 - `--format`: output format (`pretty`, `json`, `table`)
-- `--color`: parse color policy (`auto|always|never`) for upcoming renderer wiring
+- `--color`: color policy (`always` force ANSI, `never` disable, `auto` = TTY-detect and respect `NO_COLOR`)
 - `--width`: tree render width (default: `60`)
 - `--compat`: parity-target mode (`--format pretty` only, legacy width `60`)
 - `-v, --verbose`: increase verbosity level (`-vv` supported)
