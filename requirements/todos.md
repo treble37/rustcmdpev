@@ -25,7 +25,7 @@ Single consolidated checklist for MVP v1 feature parity with `gocmdpev`, plus im
 ### Safety and error handling
 - [x] Remove panic paths (`unwrap`/`expect`) from core parse/process flow for valid inputs.
 - [x] Return typed errors from core processing path and map them to CLI exit codes.
-- [ ] Return non-zero exit code for empty stdin input with actionable error text.
+- [x] Return non-zero exit code for empty stdin input with actionable error text.
 - [ ] Return non-zero exit code for invalid JSON with actionable error text.
 - [ ] Validate input JSON structure and required plan invariants before processing.
 - [ ] Add max plan depth / large-input guards to prevent failure on extreme plans.

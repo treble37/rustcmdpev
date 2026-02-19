@@ -46,6 +46,12 @@ fn exit_code_2_for_input_read_error() {
 }
 
 #[test]
+fn exit_code_2_for_empty_stdin() {
+    let output = run_with_args_and_stdin(&[], "");
+    assert_eq!(output.status.code(), Some(2));
+}
+
+#[test]
 fn exit_code_3_for_invalid_input_json() {
     let output = run_with_args_and_stdin(&[], "not-json");
     assert_eq!(output.status.code(), Some(3));
