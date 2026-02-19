@@ -143,12 +143,104 @@ fn validate_stdin_json_contract(input: &str) -> Result<(), CliError> {
         .as_object()
         .ok_or_else(|| CliError::ContractViolation("first explain entry must be a JSON object".to_string()))?;
 
+    validate_optional_non_negative_number(first_obj, "Planning Time", "$[0]")?;
+    validate_optional_non_negative_number(first_obj, "Execution Time", "$[0]")?;
+
     match first_obj.get("Plan") {
-        Some(Value::Object(_)) => Ok(()),
+        Some(Value::Object(plan)) => validate_plan_node(plan, "$[0].Plan"),
         _ => Err(CliError::ContractViolation(
             "first explain object must contain 'Plan' object".to_string(),
         )),
     }
+}
+
+fn validate_optional_non_negative_number(
+    obj: &serde_json::Map<String, Value>,
+    key: &str,
+    path: &str,
+) -> Result<(), CliError> {
+    if let Some(value) = obj.get(key) {
+        let n = value.as_f64().ok_or_else(|| {
+            CliError::ContractViolation(format!("{path}.{key} must be a number if present"))
+        })?;
+        if n < 0.0 {
+            return Err(CliError::ContractViolation(format!(
+                "{path}.{key} must be non-negative"
+            )));
+        }
+    }
+    Ok(())
+}
+
+fn validate_optional_non_negative_u64(
+    obj: &serde_json::Map<String, Value>,
+    key: &str,
+    path: &str,
+) -> Result<(), CliError> {
+    if let Some(value) = obj.get(key) {
+        if value.as_u64().is_none() {
+            return Err(CliError::ContractViolation(format!(
+                "{path}.{key} must be a non-negative integer if present"
+            )));
+        }
+    }
+    Ok(())
+}
+
+fn validate_plan_node(
+    plan: &serde_json::Map<String, Value>,
+    path: &str,
+) -> Result<(), CliError> {
+    const NON_NEGATIVE_FLOAT_FIELDS: &[&str] = &[
+        "Startup Cost",
+        "Total Cost",
+        "Actual Cost",
+        "Actual Duration",
+        "Actual Startup Time",
+        "Actual Total Time",
+        "I/O Read Time",
+        "I/O Write Time",
+    ];
+    const NON_NEGATIVE_INT_FIELDS: &[&str] = &[
+        "Actual Loops",
+        "Actual Rows",
+        "Plan Rows",
+        "Plan Width",
+        "Rows Removed By Filter",
+        "Rows Removed By Index Recheck",
+        "Shared Dirtied Blocks",
+        "Shared Hit Blocks",
+        "Shared Read Blocks",
+        "Shared Written Blocks",
+        "Local Dirtied Blocks",
+        "Local Hit Blocks",
+        "Local Read Blocks",
+        "Local Written Blocks",
+        "Temp Read Blocks",
+        "Temp Written Blocks",
+        "Heap Fetches",
+    ];
+
+    for field in NON_NEGATIVE_FLOAT_FIELDS {
+        validate_optional_non_negative_number(plan, field, path)?;
+    }
+    for field in NON_NEGATIVE_INT_FIELDS {
+        validate_optional_non_negative_u64(plan, field, path)?;
+    }
+
+    if let Some(children) = plan.get("Plans") {
+        let child_arr = children.as_array().ok_or_else(|| {
+            CliError::ContractViolation(format!("{path}.Plans must be an array if present"))
+        })?;
+        for (idx, child) in child_arr.iter().enumerate() {
+            let child_obj = child.as_object().ok_or_else(|| {
+                CliError::ContractViolation(format!("{path}.Plans[{idx}] must be an object"))
+            })?;
+            validate_plan_node(child_obj, &format!("{path}.Plans[{idx}]"))?;
+        }
+    }
+
+    Ok(())
 }
 
 fn configure_color(mode: ColorMode) {
