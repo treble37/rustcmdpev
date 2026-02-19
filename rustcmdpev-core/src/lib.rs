@@ -173,6 +173,16 @@ pub fn process_all(explain: explain::Explain) -> explain::Explain {
     new_explain
 }
 
+pub fn parse_and_process(input: &str) -> Result<explain::Explain, VisualizeError> {
+    let explains: Vec<explain::Explain> =
+        serde_json::from_str(input).map_err(VisualizeError::InvalidJson)?;
+    let explain = explains
+        .into_iter()
+        .next()
+        .ok_or(VisualizeError::EmptyExplainArray)?;
+    Ok(process_all(explain))
+}
+
 pub fn write_explain(explain: explain::Explain, width: usize) {
     println!("○ Total Cost {}", explain.total_cost);
     println!(
@@ -359,13 +369,7 @@ pub fn write_plan(
 }
 
 pub fn visualize(input: String, width: usize) -> Result<explain::Explain, VisualizeError> {
-    let explains: Vec<explain::Explain> =
-        serde_json::from_str(input.as_str()).map_err(VisualizeError::InvalidJson)?;
-    let mut explain: explain::Explain = explains
-        .into_iter()
-        .next()
-        .ok_or(VisualizeError::EmptyExplainArray)?;
-    explain = process_all(explain);
+    let explain = parse_and_process(input.as_str())?;
     write_explain(explain.clone(), width);
     Ok(explain)
 }

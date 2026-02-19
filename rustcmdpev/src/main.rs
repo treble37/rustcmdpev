@@ -47,6 +47,41 @@ struct Cli {
     quiet: bool,
 }
 
+#[derive(Debug)]
+enum CliError {
+    InputRead(String),
+    ContractViolation(String),
+    InvalidInput(String),
+    InvalidCompatibility(String),
+    OutputSerialization(String),
+    Core(rustcmdpev_core::VisualizeError),
+}
+
+impl std::fmt::Display for CliError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            CliError::InputRead(msg)
+            | CliError::ContractViolation(msg)
+            | CliError::InvalidInput(msg)
+            | CliError::InvalidCompatibility(msg)
+            | CliError::OutputSerialization(msg) => write!(f, "{msg}"),
+            CliError::Core(err) => write!(f, "{err}"),
+        }
+    }
+}
+
+impl CliError {
+    fn exit_code(&self) -> u8 {
+        match self {
+            CliError::InputRead(_) => 2,
+            CliError::ContractViolation(_) | CliError::InvalidInput(_) => 3,
+            CliError::InvalidCompatibility(_) => 4,
+            CliError::OutputSerialization(_) => 5,
+            CliError::Core(_) => 6,
+        }
+    }
+}
+
 fn init_logging(verbose: u8, quiet: bool) {
     let default_level = if quiet {
         "error"
@@ -70,44 +105,46 @@ fn init_logging(verbose: u8, quiet: bool) {
         .try_init();
 }
 
-fn read_input(input: Option<&PathBuf>) -> Result<String, String> {
+fn read_input(input: Option<&PathBuf>) -> Result<String, CliError> {
     if let Some(path) = input {
         info!(path = %path.display(), "reading input from file");
         return fs::read_to_string(path)
-            .map_err(|err| format!("failed to read input file '{}': {err}", path.display()));
+            .map_err(|err| CliError::InputRead(format!("failed to read input file '{}': {err}", path.display())));
     }
 
     info!("reading input from stdin");
     let mut buffer = String::new();
     io::stdin()
         .read_to_string(&mut buffer)
-        .map_err(|err| format!("failed to read stdin: {err}"))?;
+        .map_err(|err| CliError::InputRead(format!("failed to read stdin: {err}")))?;
     if buffer.trim().is_empty() {
-        return Err(
+        return Err(CliError::InputRead(
             "no input provided; pass JSON via stdin or --input <PATH> (try --help)".to_string(),
-        );
+        ));
     }
     Ok(buffer)
 }
 
-fn validate_stdin_json_contract(input: &str) -> Result<(), String> {
+fn validate_stdin_json_contract(input: &str) -> Result<(), CliError> {
     debug!("validating stdin JSON contract");
     let parsed: Value =
-        serde_json::from_str(input).map_err(|err| format!("invalid JSON input: {err}"))?;
+        serde_json::from_str(input).map_err(|err| CliError::InvalidInput(format!("invalid JSON input: {err}")))?;
 
     let arr = parsed
         .as_array()
-        .ok_or_else(|| "top-level JSON must be an array".to_string())?;
+        .ok_or_else(|| CliError::ContractViolation("top-level JSON must be an array".to_string()))?;
     let first = arr
         .first()
-        .ok_or_else(|| "top-level JSON array must contain at least one explain object".to_string())?;
+        .ok_or_else(|| CliError::ContractViolation("top-level JSON array must contain at least one explain object".to_string()))?;
     let first_obj = first
         .as_object()
-        .ok_or_else(|| "first explain entry must be a JSON object".to_string())?;
+        .ok_or_else(|| CliError::ContractViolation("first explain entry must be a JSON object".to_string()))?;
 
     match first_obj.get("Plan") {
         Some(Value::Object(_)) => Ok(()),
-        _ => Err("first explain object must contain 'Plan' object".to_string()),
+        _ => Err(CliError::ContractViolation(
+            "first explain object must contain 'Plan' object".to_string(),
+        )),
     }
 }
 
@@ -123,15 +160,9 @@ fn configure_color(mode: ColorMode) {
     control::set_override(use_color);
 }
 
-fn parse_and_process_explain(input: &str) -> Result<Explain, String> {
+fn parse_and_process_explain(input: &str) -> Result<Explain, CliError> {
     debug!("parsing and processing explain payload");
-    let explains: Vec<Explain> =
-        serde_json::from_str(input).map_err(|err| format!("invalid JSON input: {err}"))?;
-    let explain = explains
-        .into_iter()
-        .next()
-        .ok_or_else(|| "top-level JSON array must contain at least one explain object".to_string())?;
-    Ok(rustcmdpev_core::process_all(explain))
+    rustcmdpev_core::parse_and_process(input).map_err(CliError::Core)
 }
 
 fn write_table(explain: &Explain) {
@@ -171,7 +202,7 @@ fn write_table_plan(plan: &rustcmdpev_core::structure::data::plan::Plan, depth: 
     }
 }
 
-fn run() -> Result<(), String> {
+fn run() -> Result<(), CliError> {
     let cli = Cli::parse();
     init_logging(cli.verbose, cli.quiet);
     info!(
@@ -188,13 +219,17 @@ fn run() -> Result<(), String> {
     configure_color(cli.color);
 
     if cli.compat && cli.format != OutputFormat::Pretty {
-        return Err("--compat currently supports only --format pretty".to_string());
+        return Err(CliError::InvalidCompatibility(
+            "--compat currently supports only --format pretty".to_string(),
+        ));
     }
 
     let width = match (cli.compat, cli.width) {
         (true, Some(60)) | (true, None) => 60,
         (true, Some(_)) => {
-            return Err("--compat requires --width 60 for parity-target output".to_string());
+            return Err(CliError::InvalidCompatibility(
+                "--compat requires --width 60 for parity-target output".to_string(),
+            ));
         }
         (false, Some(width)) => width,
         (false, None) => 60,
@@ -205,8 +240,7 @@ fn run() -> Result<(), String> {
         OutputFormat::Pretty => {
             info!("rendering pretty output");
             validate_stdin_json_contract(&input)?;
-            rustcmdpev_core::visualize(input, width)
-                .map_err(|err| format!("failed to render pretty output: {err}"))?;
+            rustcmdpev_core::visualize(input, width).map_err(CliError::Core)?;
             Ok(())
         }
         OutputFormat::Json => {
@@ -214,7 +248,7 @@ fn run() -> Result<(), String> {
             validate_stdin_json_contract(&input)?;
             let explain = parse_and_process_explain(&input)?;
             let output = serde_json::to_string_pretty(&explain)
-                .map_err(|err| format!("failed to serialize JSON output: {err}"))?;
+                .map_err(|err| CliError::OutputSerialization(format!("failed to serialize JSON output: {err}")))?;
             println!("{output}");
             Ok(())
         }
@@ -233,7 +267,7 @@ fn main() -> ExitCode {
         Ok(()) => ExitCode::SUCCESS,
         Err(err) => {
             eprintln!("error: {err}");
-            ExitCode::from(1)
+            ExitCode::from(err.exit_code())
         }
     }
 }

@@ -69,6 +69,15 @@ rustcmdpev [--input <PATH>] [--format pretty|json|table] [--color auto|always|ne
 - `-q, --quiet`: reduce logs to `error` only
 - `RUST_LOG`: override log filter via `tracing-subscriber` env filter syntax
 
+### Exit codes
+
+- `0`: success
+- `2`: input read error (stdin/file)
+- `3`: invalid/contract-violating input payload
+- `4`: invalid compatibility flag combination
+- `5`: output serialization error
+- `6`: core processing/render error
+
 Run help:
 
 ```bash
