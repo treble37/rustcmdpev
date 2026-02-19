@@ -127,8 +127,11 @@ fn read_input(input: Option<&PathBuf>) -> Result<String, CliError> {
 
 fn validate_stdin_json_contract(input: &str) -> Result<(), CliError> {
     debug!("validating stdin JSON contract");
-    let parsed: Value =
-        serde_json::from_str(input).map_err(|err| CliError::InvalidInput(format!("invalid JSON input: {err}")))?;
+    let parsed: Value = serde_json::from_str(input).map_err(|err| {
+        CliError::InvalidInput(format!(
+            "invalid JSON input: {err}. Ensure input is a PostgreSQL EXPLAIN FORMAT JSON array."
+        ))
+    })?;
 
     let arr = parsed
         .as_array()
