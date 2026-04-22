@@ -7,7 +7,22 @@ on:
   workflow_dispatch:
 
 jobs:
+  parity-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Skip parity gate for non-v1.0 releases
+        if: ${{ !startsWith(github.ref, 'refs/tags/v1.0') }}
+        run: echo "Skipping v1.0 parity gate for $GITHUB_REF"
+
+      - name: Enforce P0 parity gate for v1.0 releases
+        if: ${{ startsWith(github.ref, 'refs/tags/v1.0') }}
+        run: bash scripts/check_p0_release_gate.sh
+
   build-release-artifacts:
+    needs: parity-gate
     strategy:
       matrix:
         include:
