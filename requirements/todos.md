@@ -46,7 +46,7 @@ Single consolidated checklist for MVP v1 feature parity with `gocmdpev`, plus im
 - [x] Add deterministic rendering snapshots to verify stable output across runs.
 - [x] Add integration tests for success and failure exit codes.
 - [x] Gate merges in CI on parity test pass.
-- [ ] Verify deterministic `--compat` output on Linux/macOS/Windows in CI.
+- [x] Verify deterministic `--compat` output on Linux/macOS/Windows in CI.
 
 ### G5: CI/CD and release essentials
 - [ ] Replace `.travis.yml` with GitHub Actions CI for `build`, `test`, `clippy`, and `fmt`.
