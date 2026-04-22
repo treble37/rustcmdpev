@@ -35,6 +35,18 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - run: bash scripts/check_docs_commands.sh
 
+  example-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo build --locked -p rustcmdpev --bin rustcmdpev
+      - shell: bash
+        run: |
+          export PATH="$PWD/target/debug:$PATH"
+          cat example.json | rustcmdpev > example.out
+          grep -q "Seq Scan" example.out
+
   build:
     strategy:
       matrix:
