@@ -100,6 +100,8 @@ On MacOS you can just grab a query on your clipboard and run this one-liner:
 pbpaste | sed '1s/^/EXPLAIN (ANALYZE, COSTS, VERBOSE, BUFFERS, FORMAT JSON) /' | psql -qXAt <DATABASE> | rustcmdpev
 ```
 
+Cross-platform `psql` examples for Linux, macOS, PowerShell, and CMD are documented in `docs/src/workflows.md`.
+
 Quickstart with a bundled example:
 
 ```bash

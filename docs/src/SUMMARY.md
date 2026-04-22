@@ -3,6 +3,7 @@
 - [Home](index.md)
 - [Overview](overview.md)
 - [Install](install.md)
+- [psql Workflows](workflows.md)
 - [Parity Checklist](parity.md)
 - [Parity Report Template](parity_report_template.md)
 - [Release Checklist](release_checklist.md)
