@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Project requirements
+    url: https://github.com/treble37/rustcmdpev/blob/main/requirements/PRODUCT_REQUIREMENTS.md
+    about: Review the current product requirements before opening a new issue.
