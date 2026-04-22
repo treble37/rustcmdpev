@@ -79,6 +79,26 @@ fn example_fixture_matches_snapshot() {
 }
 
 #[test]
+fn compat_snapshots_are_deterministic_across_repeated_runs() {
+    for fixture_name in [
+        "example",
+        "real_world_hash_join",
+        "real_world_nested_loop",
+        "real_world_bitmap_heap_scan",
+    ] {
+        let first = run_compat_fixture(fixture_name);
+        let second = run_compat_fixture(fixture_name);
+        let expected = normalize_snapshot_text(
+            &std::fs::read_to_string(snapshot_path(fixture_name))
+                .expect("expected parity snapshot file"),
+        );
+
+        assert_eq!(first, second, "non-deterministic compat output for {fixture_name}");
+        assert_eq!(first, expected, "deterministic output drift for {fixture_name}");
+    }
+}
+
+#[test]
 fn snapshot_normalization_strips_ansi_and_trailing_whitespace() {
     let raw = "\u{1b}[31mline one\u{1b}[0m  \r\nline two\t \r\n";
     assert_eq!(normalize_snapshot_text(raw), "line one\nline two\n");
