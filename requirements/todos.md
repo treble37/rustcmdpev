@@ -36,7 +36,7 @@ Single consolidated checklist for MVP v1 feature parity with `gocmdpev`, plus im
 - [x] Add schema-aware handling for Postgres version field differences.
 - [x] Represent plan structure with explicit node/tree semantics and invariant checks.
 - [x] Separate analysis logic (estimates, actuals, outliers) from rendering logic.
-- [ ] Extract hardcoded thresholds/labels/tree characters into named constants.
+- [x] Extract hardcoded thresholds/labels/tree characters into named constants.
 
 ### G4: Rendering determinism and parity testing
 - [ ] Add fixture-based parity tests comparing rendered output to expected snapshots.

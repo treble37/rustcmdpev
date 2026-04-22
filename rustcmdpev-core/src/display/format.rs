@@ -1,4 +1,8 @@
 use crate::structure::data::plan;
+use crate::constants::{
+    BAD_ESTIMATE_FACTOR_THRESHOLD, TAG_BAD_ESTIMATE, TAG_COSTLIEST, TAG_LARGEST, TAG_SLOWEST,
+    TREE_OUTPUT_BRANCH, TREE_OUTPUT_CHILD, TREE_OUTPUT_CONTINUATION, TREE_OUTPUT_PADDING,
+};
 use colored::*;
 
 pub fn duration_to_string(value: f64) -> colored::ColoredString {
@@ -35,16 +39,16 @@ pub fn format_tags(plan: plan::Plan) -> String {
     let mut tags = vec![];
 
     if plan.analysis_flags.slowest {
-        tags.push(" slowest ");
+        tags.push(TAG_SLOWEST);
     }
     if plan.analysis_flags.costliest {
-        tags.push(" costliest ");
+        tags.push(TAG_COSTLIEST);
     }
     if plan.analysis_flags.largest {
-        tags.push(" largest ");
+        tags.push(TAG_LARGEST);
     }
-    if plan.analysis_flags.planner_row_estimate_factor >= 100.0 {
-        tags.push(" bad estimate ");
+    if plan.analysis_flags.planner_row_estimate_factor >= BAD_ESTIMATE_FACTOR_THRESHOLD {
+        tags.push(TAG_BAD_ESTIMATE);
     }
     tags.join(" ")
 }
@@ -52,14 +56,14 @@ pub fn format_tags(plan: plan::Plan) -> String {
 pub fn get_terminator(index: usize, plan: plan::Plan) -> String {
     if index == 0 {
         if plan.plans.is_empty() {
-            "⌡► ".to_string()
+            TREE_OUTPUT_CHILD.to_string()
         } else {
-            "├►  ".to_string()
+            TREE_OUTPUT_BRANCH.to_string()
         }
     } else if plan.plans.is_empty() {
-        "   ".to_string()
+        TREE_OUTPUT_PADDING.to_string()
     } else {
-        "│  ".to_string()
+        TREE_OUTPUT_CONTINUATION.to_string()
     }
 }
 
