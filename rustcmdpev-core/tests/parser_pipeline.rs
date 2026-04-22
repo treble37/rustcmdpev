@@ -39,7 +39,10 @@ fn parser_pipeline_flows_from_raw_json_to_domain_to_validated_tree() {
 
     let raw = parse_raw_explains(input).expect("expected raw explain parse");
     assert_eq!(raw.len(), 1);
-    assert_eq!(raw[0].schema_profile(), PostgresSchemaProfile::ModernIoTiming);
+    assert_eq!(
+        raw[0].schema_profile(),
+        PostgresSchemaProfile::ModernIoTiming
+    );
 
     let domain = build_domain_explain(raw.into_iter().next().expect("expected first explain"))
         .expect("expected domain explain");

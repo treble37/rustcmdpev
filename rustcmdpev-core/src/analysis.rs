@@ -1,6 +1,4 @@
-use crate::constants::{
-    CTE_SCAN_NODE, DELTA_ERROR_THRESHOLD, OVER_LABEL, UNDER_LABEL,
-};
+use crate::constants::{CTE_SCAN_NODE, DELTA_ERROR_THRESHOLD, OVER_LABEL, UNDER_LABEL};
 use crate::structure::data::explain::Explain;
 use crate::structure::data::plan::Plan;
 
@@ -98,7 +96,8 @@ fn process_child_plans(explain: Explain, plans: Vec<Plan>) -> (Explain, Vec<Plan
 
     for child_plan in &mut new_plans {
         *child_plan = calculate_planner_estimate(child_plan.clone());
-        let (updated_explain, updated_plan) = calculate_actuals(new_explain.clone(), child_plan.clone());
+        let (updated_explain, updated_plan) =
+            calculate_actuals(new_explain.clone(), child_plan.clone());
         new_explain = updated_explain;
         *child_plan = updated_plan;
         new_explain = calculate_maximums(new_explain, child_plan.clone());

@@ -64,8 +64,14 @@ fn validate_node(
     }
     validate_non_negative(plan.estimates.startup_cost, &format!("{path}.Startup Cost"))?;
     validate_non_negative(plan.estimates.total_cost, &format!("{path}.Total Cost"))?;
-    validate_non_negative(plan.actuals.actual_startup_time, &format!("{path}.Actual Startup Time"))?;
-    validate_non_negative(plan.actuals.actual_total_time, &format!("{path}.Actual Total Time"))?;
+    validate_non_negative(
+        plan.actuals.actual_startup_time,
+        &format!("{path}.Actual Startup Time"),
+    )?;
+    validate_non_negative(
+        plan.actuals.actual_total_time,
+        &format!("{path}.Actual Total Time"),
+    )?;
     validate_non_negative(plan.io_read_time, &format!("{path}.I/O Read Time"))?;
     validate_non_negative(plan.io_write_time, &format!("{path}.I/O Write Time"))?;
 
@@ -75,7 +81,12 @@ fn validate_node(
     };
 
     for (index, child) in plan.plans.iter().enumerate() {
-        let child_stats = validate_node(child, depth + 1, &format!("{path}.Plans[{index}]"), node_count)?;
+        let child_stats = validate_node(
+            child,
+            depth + 1,
+            &format!("{path}.Plans[{index}]"),
+            node_count,
+        )?;
         stats.node_count += child_stats.node_count;
         stats.max_depth = stats.max_depth.max(child_stats.max_depth);
     }
@@ -85,10 +96,14 @@ fn validate_node(
 
 fn validate_non_negative(value: f64, path: &str) -> Result<(), VisualizeError> {
     if !value.is_finite() {
-        return Err(VisualizeError::InvalidPlan(format!("{path} must be finite")));
+        return Err(VisualizeError::InvalidPlan(format!(
+            "{path} must be finite"
+        )));
     }
     if value < 0.0 {
-        return Err(VisualizeError::InvalidPlan(format!("{path} must be non-negative")));
+        return Err(VisualizeError::InvalidPlan(format!(
+            "{path} must be non-negative"
+        )));
     }
     Ok(())
 }

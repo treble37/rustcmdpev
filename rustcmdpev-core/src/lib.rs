@@ -25,9 +25,14 @@ impl fmt::Display for VisualizeError {
         match self {
             VisualizeError::InvalidJson(err) => write!(f, "invalid JSON input: {err}"),
             VisualizeError::EmptyExplainArray => {
-                write!(f, "top-level JSON array must contain at least one explain object")
+                write!(
+                    f,
+                    "top-level JSON array must contain at least one explain object"
+                )
             }
-            VisualizeError::MissingPlan => write!(f, "first explain object must contain 'Plan' object"),
+            VisualizeError::MissingPlan => {
+                write!(f, "first explain object must contain 'Plan' object")
+            }
             VisualizeError::InvalidPlan(message) => write!(f, "{message}"),
         }
     }

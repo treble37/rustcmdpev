@@ -1,8 +1,6 @@
 use clap::{Parser, ValueEnum};
 use colored::control;
-use rustcmdpev_core::constants::{
-    BAD_ESTIMATE_FACTOR_THRESHOLD, MAX_PLAN_DEPTH, MAX_PLAN_NODES,
-};
+use rustcmdpev_core::constants::{BAD_ESTIMATE_FACTOR_THRESHOLD, MAX_PLAN_DEPTH, MAX_PLAN_NODES};
 use rustcmdpev_core::structure::data::explain::Explain;
 use serde_json::Value;
 use std::env;
@@ -111,8 +109,12 @@ fn init_logging(verbose: u8, quiet: bool) {
 fn read_input(input: Option<&PathBuf>) -> Result<String, CliError> {
     if let Some(path) = input {
         info!(path = %path.display(), "reading input from file");
-        return fs::read_to_string(path)
-            .map_err(|err| CliError::InputRead(format!("failed to read input file '{}': {err}", path.display())));
+        return fs::read_to_string(path).map_err(|err| {
+            CliError::InputRead(format!(
+                "failed to read input file '{}': {err}",
+                path.display()
+            ))
+        });
     }
 
     info!("reading input from stdin");
@@ -136,15 +138,17 @@ fn validate_stdin_json_contract(input: &str) -> Result<(), CliError> {
         ))
     })?;
 
-    let arr = parsed
-        .as_array()
-        .ok_or_else(|| CliError::ContractViolation("top-level JSON must be an array".to_string()))?;
-    let first = arr
-        .first()
-        .ok_or_else(|| CliError::ContractViolation("top-level JSON array must contain at least one explain object".to_string()))?;
-    let first_obj = first
-        .as_object()
-        .ok_or_else(|| CliError::ContractViolation("first explain entry must be a JSON object".to_string()))?;
+    let arr = parsed.as_array().ok_or_else(|| {
+        CliError::ContractViolation("top-level JSON must be an array".to_string())
+    })?;
+    let first = arr.first().ok_or_else(|| {
+        CliError::ContractViolation(
+            "top-level JSON array must contain at least one explain object".to_string(),
+        )
+    })?;
+    let first_obj = first.as_object().ok_or_else(|| {
+        CliError::ContractViolation("first explain entry must be a JSON object".to_string())
+    })?;
 
     validate_optional_non_negative_number(first_obj, "Planning Time", "$[0]")?;
     validate_optional_non_negative_number(first_obj, "Execution Time", "$[0]")?;
@@ -256,7 +260,12 @@ fn validate_plan_node(
             let child_obj = child.as_object().ok_or_else(|| {
                 CliError::ContractViolation(format!("{path}.Plans[{idx}] must be an object"))
             })?;
-            validate_plan_node(child_obj, &format!("{path}.Plans[{idx}]"), depth + 1, node_count)?;
+            validate_plan_node(
+                child_obj,
+                &format!("{path}.Plans[{idx}]"),
+                depth + 1,
+                node_count,
+            )?;
         }
     }
 
@@ -365,8 +374,9 @@ fn run() -> Result<(), CliError> {
             info!("rendering json output");
             validate_stdin_json_contract(&input)?;
             let explain = parse_and_process_explain(&input)?;
-            let output = serde_json::to_string_pretty(&explain)
-                .map_err(|err| CliError::OutputSerialization(format!("failed to serialize JSON output: {err}")))?;
+            let output = serde_json::to_string_pretty(&explain).map_err(|err| {
+                CliError::OutputSerialization(format!("failed to serialize JSON output: {err}"))
+            })?;
             println!("{output}");
             Ok(())
         }

@@ -42,7 +42,10 @@ impl RawExplain {
 
     pub fn into_domain(self) -> Result<Explain, VisualizeError> {
         let schema_profile = self.schema_profile();
-        let plan = self.plan.ok_or(VisualizeError::MissingPlan)?.into_domain(schema_profile)?;
+        let plan = self
+            .plan
+            .ok_or(VisualizeError::MissingPlan)?
+            .into_domain(schema_profile)?;
 
         Ok(Explain {
             plan,
@@ -93,7 +96,10 @@ pub struct RawPlanIoTiming {
 }
 
 impl RawPlan {
-    pub fn into_domain(self, schema_profile: PostgresSchemaProfile) -> Result<Plan, VisualizeError> {
+    pub fn into_domain(
+        self,
+        schema_profile: PostgresSchemaProfile,
+    ) -> Result<Plan, VisualizeError> {
         let plans = self
             .plans
             .into_iter()
@@ -154,18 +160,20 @@ impl RawPlanIoTiming {
                     .or(Some(self.canonical.io_write_time))
                     .unwrap_or_default(),
             },
-            PostgresSchemaProfile::ModernIoTiming | PostgresSchemaProfile::Unknown => PlanIoTiming {
-                io_read_time: if self.canonical.io_read_time == 0.0 {
-                    self.legacy_io_read_time.unwrap_or_default()
-                } else {
-                    self.canonical.io_read_time
-                },
-                io_write_time: if self.canonical.io_write_time == 0.0 {
-                    self.legacy_io_write_time.unwrap_or_default()
-                } else {
-                    self.canonical.io_write_time
-                },
-            },
+            PostgresSchemaProfile::ModernIoTiming | PostgresSchemaProfile::Unknown => {
+                PlanIoTiming {
+                    io_read_time: if self.canonical.io_read_time == 0.0 {
+                        self.legacy_io_read_time.unwrap_or_default()
+                    } else {
+                        self.canonical.io_read_time
+                    },
+                    io_write_time: if self.canonical.io_write_time == 0.0 {
+                        self.legacy_io_write_time.unwrap_or_default()
+                    } else {
+                        self.canonical.io_write_time
+                    },
+                }
+            }
         }
     }
 }

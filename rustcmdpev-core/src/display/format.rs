@@ -1,8 +1,8 @@
-use crate::structure::data::plan;
 use crate::constants::{
     BAD_ESTIMATE_FACTOR_THRESHOLD, TAG_BAD_ESTIMATE, TAG_COSTLIEST, TAG_LARGEST, TAG_SLOWEST,
     TREE_OUTPUT_BRANCH, TREE_OUTPUT_CHILD, TREE_OUTPUT_CONTINUATION, TREE_OUTPUT_PADDING,
 };
+use crate::structure::data::plan;
 use colored::*;
 
 pub fn duration_to_string(value: f64) -> colored::ColoredString {

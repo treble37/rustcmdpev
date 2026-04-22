@@ -58,8 +58,14 @@ fn run_compat_fixture(name: &str) -> String {
         .arg("always")
         .output()
         .expect("failed to run rustcmdpev");
-    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
-    normalize_snapshot_text(&String::from_utf8(output.stdout).expect("stdout should be valid utf-8"))
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    normalize_snapshot_text(
+        &String::from_utf8(output.stdout).expect("stdout should be valid utf-8"),
+    )
 }
 
 #[test]
@@ -93,8 +99,14 @@ fn compat_snapshots_are_deterministic_across_repeated_runs() {
                 .expect("expected parity snapshot file"),
         );
 
-        assert_eq!(first, second, "non-deterministic compat output for {fixture_name}");
-        assert_eq!(first, expected, "deterministic output drift for {fixture_name}");
+        assert_eq!(
+            first, second,
+            "non-deterministic compat output for {fixture_name}"
+        );
+        assert_eq!(
+            first, expected,
+            "deterministic output drift for {fixture_name}"
+        );
     }
 }
 

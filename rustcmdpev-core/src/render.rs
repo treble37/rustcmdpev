@@ -4,7 +4,9 @@ use crate::constants::{
     DESCRIPTIONS, TREE_BRANCH, TREE_ELBOW, TREE_NODE_CONNECTOR, TREE_ROOT_MARKER, TREE_VERTICAL,
 };
 use crate::display::colors::color_format;
-use crate::display::format::{duration_to_string, format_details, format_percent, format_tags, get_terminator};
+use crate::display::format::{
+    duration_to_string, format_details, format_percent, format_tags, get_terminator,
+};
 use crate::structure::data::explain::Explain;
 use crate::structure::data::plan::Plan;
 
@@ -110,7 +112,10 @@ fn write_plan(
         "{}○ Duration: {} {}",
         color_format(current_prefix.clone(), "prefix"),
         duration_to_string(plan.actuals.actual_duration),
-        format_percent((plan.actuals.actual_duration / explain.execution_time) * 100.0, 1)
+        format_percent(
+            (plan.actuals.actual_duration / explain.execution_time) * 100.0,
+            1
+        )
     )
     .expect("write to string");
     writeln!(
