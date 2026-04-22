@@ -59,6 +59,9 @@ Tagged releases publish platform archives with checksums through `.github/workfl
 Release tags follow semantic versioning: use `vMAJOR.MINOR.PATCH` for stable releases and
 `vMAJOR.MINOR.PATCH-PRERELEASE` for pre-release builds.
 
+Homebrew is not published yet; the roadmap is to add a tap/formula after `v1.0.0` release automation
+and install smoke verification are stable. Until then, use `cargo install` or the tagged release archives.
+
 # Quickstart
 
 1. Build the CLI:

@@ -38,3 +38,10 @@ If you only want a local release binary in the repo checkout:
 cargo build --release -p rustcmdpev
 ./target/release/rustcmdpev --help
 ```
+
+## Homebrew roadmap
+
+Homebrew packaging is not published yet.
+
+- Short term: use `cargo install rustcmdpev --locked` or download a tagged release archive.
+- Roadmap: add a Homebrew tap/formula after the `v1.0.0` release process is stable and install smoke checks are part of release verification.
