@@ -45,3 +45,7 @@ This section defines the parity contract for stdin ingestion in MVP v1.
 
 - Given identical input JSON and flags, output must be deterministic.
 - Contract applies to parity mode (`--compat`) and default pretty mode.
+
+## MVP v1 parity contract (2026-04-22)
+
+This section is the dated parity contract for the MVP v1 release target. It tracks the MVP parity scope against the requirements in `requirements/PRODUCT_REQUIREMENTS.md` and is the source of truth for release sign-off.

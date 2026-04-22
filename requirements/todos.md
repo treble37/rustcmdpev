@@ -5,7 +5,7 @@ Single consolidated checklist for MVP v1 feature parity with `gocmdpev`, plus im
 ## P0 (must ship for MVP v1)
 
 ### G0: Parity contract and release gating
-- [ ] Add a dated MVP v1 parity contract section in `docs/src/parity.md`.
+- [x] Add a dated MVP v1 parity contract section in `docs/src/parity.md`.
 - [ ] For each parity item, record `status`, `owner`, and `target version`.
 - [ ] Mark each parity item as binary pass/fail with explicit acceptance checks.
 - [ ] Create a parity report artifact template for release.
