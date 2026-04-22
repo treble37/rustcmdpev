@@ -42,6 +42,9 @@ cargo build --release -p rustcmdpev
 
 Tagged releases publish platform archives with checksums through `.github/workflows/release.yml`.
 
+Release tags follow semantic versioning: use `vMAJOR.MINOR.PATCH` for stable releases and
+`vMAJOR.MINOR.PATCH-PRERELEASE` for pre-release builds.
+
 # Quickstart
 
 1. Build the CLI:

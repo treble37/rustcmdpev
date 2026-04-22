@@ -16,6 +16,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Enforce semantic version tag convention
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
+        run: bash scripts/check_release_tag.sh "$GITHUB_REF_NAME"
+
       - name: Skip parity gate for non-v1.0 releases
         if: ${{ !startsWith(github.ref, 'refs/tags/v1.0') }}
         run: echo "Skipping v1.0 parity gate for $GITHUB_REF"

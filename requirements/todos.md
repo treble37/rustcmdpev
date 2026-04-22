@@ -53,7 +53,7 @@ Single consolidated checklist for MVP v1 feature parity with `gocmdpev`, plus im
 - [x] Add CI matrix for Linux/macOS/Windows.
 - [x] Define and enforce MSRV in CI.
 - [x] Publish versioned releases with binaries for Linux/macOS/Windows.
-- [ ] Establish semantic versioning and tag conventions.
+- [x] Establish semantic versioning and tag conventions.
 
 ### G6: Documentation and install baseline
 - [ ] Add `cargo install rustcmdpev` instructions to README/docs.
