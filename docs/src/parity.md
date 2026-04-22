@@ -49,3 +49,16 @@ This section defines the parity contract for stdin ingestion in MVP v1.
 ## MVP v1 parity contract (2026-04-22)
 
 This section is the dated parity contract for the MVP v1 release target. It tracks the MVP parity scope against the requirements in `requirements/PRODUCT_REQUIREMENTS.md` and is the source of truth for release sign-off.
+
+| Parity item | Status | Owner | Target version |
+| --- | --- | --- | --- |
+| Define a parity scope contract | Complete | Docs | v1.0.0 |
+| Golden parity harness against upstream behavior | Planned | Core | v1.0.0 |
+| Strict CLI input and error contract | Complete | CLI | v1.0.0 |
+| Output compatibility mode | Complete | CLI | v1.0.0 |
+| Bundled sample file parity | Planned | Docs | v1.0.0 |
+| Install and distribution parity | Planned | Release | v1.0.0 |
+| Python and Rails parity decision | Planned | Product | v1.0.0 |
+| Cross-platform workflow documentation | Planned | Docs | v1.0.0 |
+| Deterministic rendering and panic-free behavior | Partial | Core | v1.0.0 |
+| Versioned parity sign-off | Planned | Release | v1.0.0 |
