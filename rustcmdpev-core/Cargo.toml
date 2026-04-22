@@ -1,11 +1,19 @@
 [package]
 name = "rustcmdpev-core"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
+description = "Core parsing, analysis, and rendering primitives for rustcmdpev"
+license = "MIT"
+repository = "https://github.com/treble37/rustcmdpev"
+homepage = "https://github.com/treble37/rustcmdpev"
+documentation = "https://docs.rs/rustcmdpev-core"
+readme = "../README.md"
+keywords = ["postgres", "explain", "rendering"]
+categories = ["command-line-utilities", "database"]
+rust-version = "1.84"
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
-serde_with = { version = "3.15.1", features = ["json"] }
 serde_json = "1.0"
 colored = "3.0"
 phf = { version = "0.13.1", features = ["macros"] }

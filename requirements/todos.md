@@ -31,7 +31,7 @@ Single consolidated checklist for MVP v1 feature parity with `gocmdpev`, plus im
 - [ ] Add max plan depth / large-input guards to prevent failure on extreme plans.
 
 ### G3: Core model and processing correctness
-- [ ] Implement a clear parser pipeline: raw JSON -> domain model -> validated plan tree.
+- [x] Implement a clear parser pipeline: raw JSON -> domain model -> validated plan tree.
 - [ ] Keep strongly typed serde models for Postgres EXPLAIN fields with version-tolerant optional fields.
 - [ ] Add schema-aware handling for Postgres version field differences.
 - [ ] Represent plan structure with explicit node/tree semantics and invariant checks.
@@ -66,20 +66,20 @@ Single consolidated checklist for MVP v1 feature parity with `gocmdpev`, plus im
 
 ## P1 (should ship shortly after MVP cut)
 
-### G0: Architecture and maintainability
+### G7: Architecture and maintainability
 - [x] Convert to a workspace with `rustcmdpev-core` (lib) and `rustcmdpev` (bin).
 - [ ] Finalize render module boundaries (`display/colors`, `display/tree`, `display/format`).
 - [ ] Refactor large `Plan` model into grouped sub-structs where practical.
 - [ ] Improve function signatures by introducing context structs and reducing large parameter lists.
 - [ ] Reduce unnecessary cloning and ownership churn in hot paths.
 
-### G1: Output features and UX polish
+### G8: Output features and UX polish
 - [ ] Add theme support (`dark`, `light`, `no-color`) and condensed/verbose render modes.
 - [ ] Add summary block improvements (cost, time, loops, memory, buffers).
 - [ ] Add customization for tree drawing characters/styles.
 - [ ] Add `--postgres-version` hinting for parser quirks.
 
-### G2: Quality and testing depth
+### G9: Quality and testing depth
 - [ ] Expand unit tests for parsing oddities and calculation functions.
 - [ ] Expand integration tests across diverse PostgreSQL plan types.
 - [ ] Add property tests for plan invariants (e.g., non-negative costs, child consistency).
@@ -87,7 +87,7 @@ Single consolidated checklist for MVP v1 feature parity with `gocmdpev`, plus im
 - [ ] Add performance benchmarks for parsing/rendering.
 - [ ] Enable strict linting policy (`clippy`, warning policy) and project rustfmt config.
 
-### G3: Distribution and project hygiene
+### G10: Distribution and project hygiene
 - [ ] Add automated changelog generation (`git-cliff`).
 - [ ] Publish prebuilt tarballs with checksums (and package metadata for platform managers).
 - [ ] Add license/header and dependency policy checks (`cargo-deny`).
@@ -98,7 +98,7 @@ Single consolidated checklist for MVP v1 feature parity with `gocmdpev`, plus im
 
 ## P2 (backlog and optional extensions)
 
-### G0: Performance and optimization
+### G11: Performance and optimization
 - [ ] Investigate zero-copy deserialization opportunities (`Cow<'_, str>`) where beneficial.
 - [ ] Support streaming JSON parse from reader for very large plans.
 - [ ] Pre-compute aggregate metrics once and reuse in rendering.
@@ -106,13 +106,13 @@ Single consolidated checklist for MVP v1 feature parity with `gocmdpev`, plus im
 - [ ] Evaluate iterative traversal/memoization for deep tree performance.
 - [ ] Reduce allocations in hot paths (reuse objects/buffers where justified).
 
-### G1: Dependency and modernization follow-up
+### G12: Dependency and modernization follow-up
 - [ ] Continue modernizing Rust patterns (`?`, targeted `const fn`, idiomatic APIs).
 - [ ] Audit and update dependency set; evaluate replacing `phf` if maintainability improves.
 - [ ] Add automated dependency update workflow.
 - [ ] Add CI coverage reporting.
 
-### G2: Feature extensions (non-MVP)
+### G13: Feature extensions (non-MVP)
 - [ ] Decide and document MVP posture for Python bindings (`include` or `defer`) with date/owner/rationale.
 - [ ] Decide and document MVP posture for Rails integration (`include` or `defer`) with date/owner/rationale.
 - [ ] Evaluate optional direct Postgres connection mode (feature-flagged).
@@ -120,7 +120,7 @@ Single consolidated checklist for MVP v1 feature parity with `gocmdpev`, plus im
 - [ ] Evaluate optional CSV export.
 - [ ] Evaluate optional opt-in anonymous usage telemetry (off by default).
 
-### G3: Advanced docs and i18n ideas
+### G14: Advanced docs and i18n ideas
 - [ ] Improve inline comments for complex algorithms and design tradeoffs.
 - [ ] Expand duration formatting options and user preference support.
 - [ ] Evaluate making operator descriptions externally configurable and i18n-ready.

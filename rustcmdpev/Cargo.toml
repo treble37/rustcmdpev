@@ -1,7 +1,16 @@
 [package]
 name = "rustcmdpev"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
+description = "Visualize PostgreSQL EXPLAIN JSON output in a terminal-friendly tree"
+license = "MIT"
+repository = "https://github.com/treble37/rustcmdpev"
+homepage = "https://github.com/treble37/rustcmdpev"
+documentation = "https://docs.rs/rustcmdpev"
+readme = "../README.md"
+keywords = ["postgres", "explain", "cli", "query-plan"]
+categories = ["command-line-utilities", "database"]
+rust-version = "1.84"
 
 [dependencies]
 clap = { version = "4.5", features = ["derive"] }

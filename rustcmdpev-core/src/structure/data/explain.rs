@@ -1,10 +1,12 @@
 use serde::{Deserialize, Serialize};
+
 /// The Explain struct
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Explain {
-    //TODO: add Triggers back, add default for plan?
     #[serde(default, rename(deserialize = "Plan"))]
     pub plan: crate::structure::data::plan::Plan,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub postgres_version: Option<String>,
     #[serde(default, rename(deserialize = "Planning Time"))]
     pub planning_time: f64,
     #[serde(default, rename(deserialize = "Execution Time"))]
@@ -25,6 +27,7 @@ impl Default for Explain {
             plan: crate::structure::data::plan::Plan {
                 ..Default::default()
             },
+            postgres_version: None,
             planning_time: 0.0,
             execution_time: 0.0,
             total_cost: 0.0,
