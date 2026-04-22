@@ -237,3 +237,15 @@ fn rendering_is_separate_and_returns_tree_text() {
     assert!(rendered.contains("○ Duration:"));
     assert!(rendered.contains("┬"));
 }
+
+#[test]
+fn library_can_render_without_printing_as_part_of_analysis() {
+    let rendered = rustcmdpev_core::render_visualization(
+        r#"[{"Plan":{"Node Type":"Seq Scan","Startup Cost":0.0,"Total Cost":1.0,"Actual Startup Time":0.1,"Actual Total Time":0.2,"Actual Rows":2,"Actual Loops":1},"Execution Time":0.2}]"#,
+        80,
+    )
+    .expect("expected rendered output");
+
+    assert!(rendered.contains("Seq Scan"));
+    assert!(rendered.contains("Execution Time"));
+}

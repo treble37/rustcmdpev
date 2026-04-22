@@ -35,14 +35,25 @@ impl fmt::Display for VisualizeError {
 
 impl Error for VisualizeError {}
 
+pub fn analyze_explain(explain: Explain) -> Explain {
+    analysis::process_all(explain)
+}
+
 pub fn parse_and_process(input: &str) -> Result<Explain, VisualizeError> {
     let explain = parser::parse_explain_document(input)?;
-    Ok(analysis::process_all(explain))
+    Ok(analyze_explain(explain))
+}
+
+pub fn render_visualization(input: &str, width: usize) -> Result<String, VisualizeError> {
+    let explain = parse_and_process(input)?;
+    Ok(render::render_explain(
+        &explain,
+        render::RenderOptions { width },
+    ))
 }
 
 pub fn visualize(input: String, width: usize) -> Result<Explain, VisualizeError> {
     let explain = parse_and_process(input.as_str())?;
-    let rendered = render::render_explain(&explain, render::RenderOptions { width });
-    print!("{rendered}");
+    let _rendered = render::render_explain(&explain, render::RenderOptions { width });
     Ok(explain)
 }

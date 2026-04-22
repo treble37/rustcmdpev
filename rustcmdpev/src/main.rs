@@ -1,5 +1,6 @@
 use clap::{Parser, ValueEnum};
 use colored::control;
+use rustcmdpev_core::constants::BAD_ESTIMATE_FACTOR_THRESHOLD;
 use rustcmdpev_core::structure::data::explain::Explain;
 use serde_json::Value;
 use std::env;
@@ -278,7 +279,7 @@ fn write_table_plan(plan: &rustcmdpev_core::structure::data::plan::Plan, depth: 
     if plan.analysis_flags.largest {
         tags.push("largest");
     }
-    if plan.analysis_flags.planner_row_estimate_factor >= 100.0 {
+    if plan.analysis_flags.planner_row_estimate_factor >= BAD_ESTIMATE_FACTOR_THRESHOLD {
         tags.push("bad_estimate");
     }
 
@@ -335,7 +336,10 @@ fn run() -> Result<(), CliError> {
         OutputFormat::Pretty => {
             info!("rendering pretty output");
             validate_stdin_json_contract(&input)?;
-            rustcmdpev_core::visualize(input, width).map_err(CliError::Core)?;
+            print!(
+                "{}",
+                rustcmdpev_core::render_visualization(&input, width).map_err(CliError::Core)?
+            );
             Ok(())
         }
         OutputFormat::Json => {

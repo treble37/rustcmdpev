@@ -125,7 +125,7 @@ mod tests {
                 "Execution Time": 2.776
               }
             ]"#;
-        let explain: explain::Explain = rustcmdpev_core::visualize(input.to_string(), 60)
+        let explain: explain::Explain = rustcmdpev_core::parse_and_process(input)
             .expect("expected valid explain input to render");
         assert_eq!(explain.total_cost, 25.1);
         assert_eq!(explain.max_cost, 13.31);
@@ -140,10 +140,10 @@ mod tests {
         assert_eq!(explain.plan.relation_name, "");
     }
     #[test]
-    fn test_with_missing_node_type_plan_field() {
+    fn test_missing_node_type_plan_field_is_rejected() {
         let input = r#"[{"Plan": {"Alias": "c0"}}]"#;
-        let explain: explain::Explain = rustcmdpev_core::visualize(input.to_string(), 60)
-            .expect("expected valid explain input to render");
-        assert_eq!(explain.total_cost, 0.0);
+        let err = rustcmdpev_core::parse_and_process(input)
+            .expect_err("expected missing node type to be rejected");
+        assert!(format!("{err}").contains("Node Type"));
     }
 }
