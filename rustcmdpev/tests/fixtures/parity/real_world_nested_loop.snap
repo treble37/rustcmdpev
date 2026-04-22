@@ -1,0 +1,39 @@
+○ Total Cost 19.749999999999996
+○ Planning Time: 4.21 ms
+○ Execution Time: 1.82 ms
+┬
+│
+└─⌠ Nested Loop  slowest   costliest   largest 
+  │ Merges two record sets by looping through every record
+  │ in the first set and trying to find a match in the
+  │ second set. All matching records are returned.
+  │ ○ Duration: 0.93 ms 51.1%
+  │ ○ Cost: 11.19 ms 56.7%
+  │ ○ Rows: 42
+  │   join Inner
+  │   rows Underestimated by 1.05x
+  ├►  orders.id + customers.email
+  │
+  ├─⌠ Seq Scan  largest 
+  │ │ Finds relevant records by sequentially scanning
+  │ │ the input record set. When reading from a table,
+  │ │ Seq Scans (unlike Index Scans) perform a single
+  │ │ read operation (only the table is read).
+  │ │ ○ Duration: 0.60 ms 33.0%
+  │ │ ○ Cost: 8.25 ms 41.8%
+  │ │ ○ Rows: 42
+  │ │   on public orders
+  │ │   filter (orders.total > 100) [-8 rows]
+  │ │   rows Underestimated by 1.05x
+  │
+  └─⌠ Index Scan 
+    │ Finds relevant records based on an Index. Index
+    │ Scans perform 2 read operations: one to read the
+    │ index and another to read the actual value from
+    │ the table.
+    │ ○ Duration: 0.84 ms 46.2%
+    │ ○ Cost: 0.31 ms 1.6%
+    │ ○ Rows: 1
+    │   on public customers
+    │   using customers_pkey
+    │   condition (customers.id = orders.customer_id)

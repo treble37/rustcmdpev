@@ -1,0 +1,43 @@
+○ Total Cost 25.1
+○ Planning Time: 8.12 ms
+○ Execution Time: 2.78 ms
+┬
+│
+└─⌠ Hash Join  largest 
+  │ Joins to record sets by hashing one of them (using a
+  │ Hash Scan).
+  │ ○ Duration: 0.44 ms 15.7%
+  │ ○ Cost: 1.29 ms 5.1%
+  │ ○ Rows: 231
+  │   join Inner
+  │   on (swimmers.coach_id = coaches.id)
+  ├►  coaches.id + swimmers.id
+  │
+  ├─⌠ Seq Scan  slowest   costliest   largest 
+  │ │ Finds relevant records by sequentially scanning
+  │ │ the input record set. When reading from a table,
+  │ │ Seq Scans (unlike Index Scans) perform a single
+  │ │ read operation (only the table is read).
+  │ │ ○ Duration: 1.15 ms 41.3%
+  │ │ ○ Cost: 13.31 ms 53.0%
+  │ │ ○ Rows: 231
+  │ │   on public swimmers
+  │
+  └─⌠ Hash 
+    │ Generates a hash table from the records in the input
+    │ recordset. Hash is used by Hash Join.
+    │ ○ Duration: 0.32 ms 11.6%
+    │ ○ Cost: 0.00 ms 0.0%
+    │ ○ Rows: 11
+    │   rows Overestimated by 4.55x
+    │
+    └─⌠ Seq Scan 
+      │ Finds relevant records by sequentially scanning
+      │ the input record set. When reading from a table,
+      │ Seq Scans (unlike Index Scans) perform a single
+      │ read operation (only the table is read).
+      │ ○ Duration: 0.26 ms 9.4%
+      │ ○ Cost: 10.50 ms 41.8%
+      │ ○ Rows: 11
+      │   on public coaches
+      │   rows Overestimated by 4.55x

@@ -1,0 +1,41 @@
+[
+  {
+    "Plan": {
+      "Node Type": "Bitmap Heap Scan",
+      "Relation Name": "events",
+      "Schema": "public",
+      "Alias": "events",
+      "Recheck Cond": "(events.kind = 'deploy')",
+      "Startup Cost": 12.40,
+      "Total Cost": 58.20,
+      "Plan Rows": 120,
+      "Plan Width": 48,
+      "Actual Startup Time": 0.410,
+      "Actual Total Time": 2.410,
+      "Actual Rows": 96,
+      "Actual Loops": 1,
+      "Output": [
+        "events.id",
+        "events.kind"
+      ],
+      "Plans": [
+        {
+          "Node Type": "Bitmap Index Scan",
+          "Parent Relationship": "Outer",
+          "Index Name": "events_kind_idx",
+          "Index Cond": "(events.kind = 'deploy')",
+          "Startup Cost": 0.00,
+          "Total Cost": 12.37,
+          "Plan Rows": 120,
+          "Plan Width": 0,
+          "Actual Startup Time": 0.300,
+          "Actual Total Time": 0.300,
+          "Actual Rows": 96,
+          "Actual Loops": 1
+        }
+      ]
+    },
+    "Planning Time": 3.180,
+    "Execution Time": 2.900
+  }
+]

@@ -1,0 +1,25 @@
+○ Total Cost 58.2
+○ Planning Time: 3.18 ms
+○ Execution Time: 2.90 ms
+┬
+│
+└─⌠ Bitmap Heap Scan  slowest   costliest   largest 
+  │ Searches through the pages returned by the Bitmap
+  │ Index Scan for relevant rows.
+  │ ○ Duration: 2.11 ms 72.8%
+  │ ○ Cost: 45.83 ms 78.7%
+  │ ○ Rows: 96
+  │   on public events
+  │   rows Overestimated by 1.25x
+  ├►  events.id + events.kind
+  │
+  └─⌠ Bitmap Index Scan  largest 
+    │ Uses a Bitmap Index (index which uses 1 bit per
+    │ page) to find all relevant pages. Results of this
+    │ node are fed to the Bitmap Heap Scan.
+    │ ○ Duration: 0.30 ms 10.3%
+    │ ○ Cost: 12.37 ms 21.3%
+    │ ○ Rows: 96
+    │   using events_kind_idx
+    │   condition (events.kind = 'deploy')
+    │   rows Overestimated by 1.25x

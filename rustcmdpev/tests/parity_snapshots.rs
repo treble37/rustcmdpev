@@ -29,8 +29,15 @@ fn run_pretty_fixture(name: &str) -> String {
 
 #[test]
 fn example_fixture_matches_snapshot() {
-    let expected = std::fs::read_to_string(snapshot_path("example"))
-        .expect("expected parity snapshot file");
-    let actual = run_pretty_fixture("example");
-    assert_eq!(actual, expected);
+    for fixture_name in [
+        "example",
+        "real_world_hash_join",
+        "real_world_nested_loop",
+        "real_world_bitmap_heap_scan",
+    ] {
+        let expected = std::fs::read_to_string(snapshot_path(fixture_name))
+            .expect("expected parity snapshot file");
+        let actual = run_pretty_fixture(fixture_name);
+        assert_eq!(actual, expected, "snapshot mismatch for {fixture_name}");
+    }
 }
