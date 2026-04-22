@@ -10,7 +10,7 @@ Single consolidated checklist for MVP v1 feature parity with `gocmdpev`, plus im
 - [x] Mark each parity item as binary pass/fail with explicit acceptance checks.
 - [x] Create a parity report artifact template for release.
 - [x] Block v1.0 release if any P0 parity requirement is incomplete.
-- [ ] Link parity report from release notes/checklist.
+- [x] Link parity report from release notes/checklist.
 
 ### G1: CLI, input, and output compatibility
 - [x] Add `clap`-based CLI with documented flags and help output.

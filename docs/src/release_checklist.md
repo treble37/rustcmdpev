@@ -1,0 +1,11 @@
+# Release Checklist
+
+Use this checklist when preparing a release tag.
+
+## MVP v1 release checklist
+
+- [ ] Confirm the `P0` release gate passes.
+- [ ] Complete the [parity report artifact](parity_report_template.md) for the tagged release.
+- [ ] Link the completed parity report from the release notes.
+- [ ] Attach or reference platform release artifacts and checksums.
+- [ ] Verify installation and smoke tests for the target release.
