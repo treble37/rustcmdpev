@@ -32,7 +32,7 @@ Single consolidated checklist for MVP v1 feature parity with `gocmdpev`, plus im
 
 ### G3: Core model and processing correctness
 - [x] Implement a clear parser pipeline: raw JSON -> domain model -> validated plan tree.
-- [ ] Keep strongly typed serde models for Postgres EXPLAIN fields with version-tolerant optional fields.
+- [x] Keep strongly typed serde models for Postgres EXPLAIN fields with version-tolerant optional fields.
 - [ ] Add schema-aware handling for Postgres version field differences.
 - [ ] Represent plan structure with explicit node/tree semantics and invariant checks.
 - [ ] Separate analysis logic (estimates, actuals, outliers) from rendering logic.

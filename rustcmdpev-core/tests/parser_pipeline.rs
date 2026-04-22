@@ -79,6 +79,47 @@ fn schema_aware_parser_accepts_legacy_io_timing_aliases() {
 }
 
 #[test]
+fn grouped_raw_models_preserve_typed_identity_predicates_and_buffers() {
+    let input = r#"
+        [
+          {
+            "Plan": {
+              "Node Type": "Index Scan",
+              "Relation Name": "coaches",
+              "Schema": "public",
+              "Alias": "coaches",
+              "Index Name": "coaches_pkey",
+              "Index Cond": "(coaches.id = 42)",
+              "Output": ["coaches.id"],
+              "Shared Hit Blocks": 5,
+              "Temp Written Blocks": 1,
+              "Startup Cost": 0.10,
+              "Total Cost": 2.50,
+              "Plan Rows": 1,
+              "Plan Width": 8,
+              "Actual Startup Time": 0.01,
+              "Actual Total Time": 0.02,
+              "Actual Rows": 1,
+              "Actual Loops": 1
+            }
+          }
+        ]
+    "#;
+
+    let raw = parse_raw_explains(input).expect("expected raw explain parse");
+    let explain = build_domain_explain(raw.into_iter().next().expect("expected first explain"))
+        .expect("expected domain explain");
+
+    assert_eq!(explain.plan.node_type, "Index Scan");
+    assert_eq!(explain.plan.relation_name, "coaches");
+    assert_eq!(explain.plan.index_name, "coaches_pkey");
+    assert_eq!(explain.plan.index_condition, "(coaches.id = 42)");
+    assert_eq!(explain.plan.output, vec!["coaches.id"]);
+    assert_eq!(explain.plan.shared_hit_blocks, 5);
+    assert_eq!(explain.plan.temp_written_blocks, 1);
+}
+
+#[test]
 fn validated_tree_rejects_negative_numeric_invariants() {
     let input = r#"
         [
