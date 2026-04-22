@@ -1,0 +1,30 @@
+name: Changelog
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  changelog:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate changelog
+        uses: orhun/git-cliff-action@v4
+        with:
+          config: cliff.toml
+          args: --verbose --output CHANGELOG.md
+        env:
+          OUTPUT: CHANGELOG.md
+
+      - name: Upload changelog artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: changelog
+          path: CHANGELOG.md
