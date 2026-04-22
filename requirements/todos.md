@@ -45,7 +45,7 @@ Single consolidated checklist for MVP v1 feature parity with `gocmdpev`, plus im
 - [x] Run parity snapshot tests in `--compat` mode.
 - [x] Add deterministic rendering snapshots to verify stable output across runs.
 - [x] Add integration tests for success and failure exit codes.
-- [ ] Gate merges in CI on parity test pass.
+- [x] Gate merges in CI on parity test pass.
 - [ ] Verify deterministic `--compat` output on Linux/macOS/Windows in CI.
 
 ### G5: CI/CD and release essentials
