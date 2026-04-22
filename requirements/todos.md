@@ -95,6 +95,7 @@ Single consolidated checklist for MVP v1 feature parity with `gocmdpev`, plus im
 - [x] Add README badges for crates/docs/CI and improve quickstart docs.
 - [x] Add `examples/` plans and a reproducible local demo target.
 - [x] Add API/module-level docs for public surfaces and complex logic.
+- [x] Add docs site build and publish workflow.
 
 ## P2 (backlog and optional extensions)
 
