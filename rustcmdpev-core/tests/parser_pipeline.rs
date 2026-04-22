@@ -225,6 +225,47 @@ fn validated_tree_rejects_missing_node_types() {
 }
 
 #[test]
+fn validated_tree_rejects_excessive_depth() {
+    let mut input = String::from("[{\"Plan\":");
+    for _ in 0..33 {
+        input.push_str("{\"Node Type\":\"Nested Loop\",\"Plans\":[");
+    }
+    input.push_str("{\"Node Type\":\"Seq Scan\"}");
+    for _ in 0..33 {
+        input.push_str("]}");
+    }
+    input.push_str("}]");
+
+    let err = rustcmdpev_core::parse_and_process(&input).expect_err("expected depth guard");
+    match err {
+        VisualizeError::InvalidPlan(message) => {
+            assert!(message.contains("maximum supported plan depth"));
+        }
+        other => panic!("expected invalid plan error, got {other:?}"),
+    }
+}
+
+#[test]
+fn validated_tree_rejects_excessive_node_count() {
+    let mut input = String::from("[{\"Plan\":{\"Node Type\":\"Append\",\"Plans\":[");
+    for idx in 0..10_001 {
+        if idx > 0 {
+            input.push(',');
+        }
+        input.push_str("{\"Node Type\":\"Seq Scan\"}");
+    }
+    input.push_str("]}}]");
+
+    let err = rustcmdpev_core::parse_and_process(&input).expect_err("expected node count guard");
+    match err {
+        VisualizeError::InvalidPlan(message) => {
+            assert!(message.contains("maximum supported node count"));
+        }
+        other => panic!("expected invalid plan error, got {other:?}"),
+    }
+}
+
+#[test]
 fn rendering_is_separate_and_returns_tree_text() {
     let explain = rustcmdpev_core::parse_and_process(
         r#"[{"Plan":{"Node Type":"Seq Scan","Startup Cost":0.0,"Total Cost":1.0,"Actual Startup Time":0.1,"Actual Total Time":0.2,"Actual Rows":2,"Actual Loops":1},"Execution Time":0.2}]"#,

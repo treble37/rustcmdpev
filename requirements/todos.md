@@ -28,7 +28,7 @@ Single consolidated checklist for MVP v1 feature parity with `gocmdpev`, plus im
 - [x] Return non-zero exit code for empty stdin input with actionable error text.
 - [x] Return non-zero exit code for invalid JSON with actionable error text.
 - [x] Validate input JSON structure and required plan invariants before processing.
-- [ ] Add max plan depth / large-input guards to prevent failure on extreme plans.
+- [x] Add max plan depth / large-input guards to prevent failure on extreme plans.
 
 ### G3: Core model and processing correctness
 - [x] Implement a clear parser pipeline: raw JSON -> domain model -> validated plan tree.

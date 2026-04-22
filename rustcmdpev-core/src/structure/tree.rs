@@ -1,3 +1,4 @@
+use crate::constants::{MAX_PLAN_DEPTH, MAX_PLAN_NODES};
 use crate::structure::data::plan::Plan;
 use crate::VisualizeError;
 
@@ -18,7 +19,8 @@ pub struct PlanTree {
 impl PlanTree {
     /// Build a validated plan tree rooted at the supplied plan node.
     pub fn new(root: Plan) -> Result<Self, VisualizeError> {
-        let stats = validate_node(&root, 0, "Plan")?;
+        let mut node_count = 0;
+        let stats = validate_node(&root, 0, "Plan", &mut node_count)?;
         Ok(Self { root, stats })
     }
 
@@ -38,10 +40,26 @@ impl PlanTree {
     }
 }
 
-fn validate_node(plan: &Plan, depth: usize, path: &str) -> Result<TreeStats, VisualizeError> {
+fn validate_node(
+    plan: &Plan,
+    depth: usize,
+    path: &str,
+    node_count: &mut usize,
+) -> Result<TreeStats, VisualizeError> {
+    if depth > MAX_PLAN_DEPTH {
+        return Err(VisualizeError::InvalidPlan(format!(
+            "{path} exceeds maximum supported plan depth of {MAX_PLAN_DEPTH}"
+        )));
+    }
     if plan.node_type.trim().is_empty() {
         return Err(VisualizeError::InvalidPlan(format!(
             "{path}.Node Type must be populated"
+        )));
+    }
+    *node_count += 1;
+    if *node_count > MAX_PLAN_NODES {
+        return Err(VisualizeError::InvalidPlan(format!(
+            "plan exceeds maximum supported node count of {MAX_PLAN_NODES}"
         )));
     }
     validate_non_negative(plan.estimates.startup_cost, &format!("{path}.Startup Cost"))?;
@@ -57,7 +75,7 @@ fn validate_node(plan: &Plan, depth: usize, path: &str) -> Result<TreeStats, Vis
     };
 
     for (index, child) in plan.plans.iter().enumerate() {
-        let child_stats = validate_node(child, depth + 1, &format!("{path}.Plans[{index}]"))?;
+        let child_stats = validate_node(child, depth + 1, &format!("{path}.Plans[{index}]"), node_count)?;
         stats.node_count += child_stats.node_count;
         stats.max_depth = stats.max_depth.max(child_stats.max_depth);
     }

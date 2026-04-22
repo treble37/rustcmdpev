@@ -6,6 +6,8 @@ pub const CTE_SCAN_NODE: &str = "CTE Scan";
 
 pub const DELTA_ERROR_THRESHOLD: f64 = 0.001;
 pub const BAD_ESTIMATE_FACTOR_THRESHOLD: f64 = 100.0;
+pub const MAX_PLAN_DEPTH: usize = 32;
+pub const MAX_PLAN_NODES: usize = 10_000;
 
 pub const TREE_VERTICAL: &str = "│";
 pub const TREE_ELBOW: &str = "└";

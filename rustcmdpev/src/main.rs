@@ -1,6 +1,8 @@
 use clap::{Parser, ValueEnum};
 use colored::control;
-use rustcmdpev_core::constants::BAD_ESTIMATE_FACTOR_THRESHOLD;
+use rustcmdpev_core::constants::{
+    BAD_ESTIMATE_FACTOR_THRESHOLD, MAX_PLAN_DEPTH, MAX_PLAN_NODES,
+};
 use rustcmdpev_core::structure::data::explain::Explain;
 use serde_json::Value;
 use std::env;
@@ -148,7 +150,10 @@ fn validate_stdin_json_contract(input: &str) -> Result<(), CliError> {
     validate_optional_non_negative_number(first_obj, "Execution Time", "$[0]")?;
 
     match first_obj.get("Plan") {
-        Some(Value::Object(plan)) => validate_plan_node(plan, "$[0].Plan"),
+        Some(Value::Object(plan)) => {
+            let mut node_count = 0;
+            validate_plan_node(plan, "$[0].Plan", 0, &mut node_count)
+        }
         _ => Err(CliError::ContractViolation(
             "first explain object must contain 'Plan' object".to_string(),
         )),
@@ -191,6 +196,8 @@ fn validate_optional_non_negative_u64(
 fn validate_plan_node(
     plan: &serde_json::Map<String, Value>,
     path: &str,
+    depth: usize,
+    node_count: &mut usize,
 ) -> Result<(), CliError> {
     const NON_NEGATIVE_FLOAT_FIELDS: &[&str] = &[
         "Startup Cost",
@@ -222,6 +229,18 @@ fn validate_plan_node(
         "Heap Fetches",
     ];
 
+    if depth > MAX_PLAN_DEPTH {
+        return Err(CliError::ContractViolation(format!(
+            "{path} exceeds maximum supported plan depth of {MAX_PLAN_DEPTH}"
+        )));
+    }
+    *node_count += 1;
+    if *node_count > MAX_PLAN_NODES {
+        return Err(CliError::ContractViolation(format!(
+            "plan exceeds maximum supported node count of {MAX_PLAN_NODES}"
+        )));
+    }
+
     for field in NON_NEGATIVE_FLOAT_FIELDS {
         validate_optional_non_negative_number(plan, field, path)?;
     }
@@ -237,7 +256,7 @@ fn validate_plan_node(
             let child_obj = child.as_object().ok_or_else(|| {
                 CliError::ContractViolation(format!("{path}.Plans[{idx}] must be an object"))
             })?;
-            validate_plan_node(child_obj, &format!("{path}.Plans[{idx}]"))?;
+            validate_plan_node(child_obj, &format!("{path}.Plans[{idx}]"), depth + 1, node_count)?;
         }
     }
 

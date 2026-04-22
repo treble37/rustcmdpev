@@ -50,3 +50,41 @@ fn accepts_valid_nested_plan_shape() {
     );
     assert_eq!(output.status.code(), Some(0));
 }
+
+fn nested_plan_json(depth: usize) -> String {
+    let mut json = String::from("[{\"Plan\":");
+    for _ in 0..depth {
+        json.push_str("{\"Node Type\":\"Nested Loop\",\"Plans\":[");
+    }
+    json.push_str("{\"Node Type\":\"Seq Scan\"}");
+    for _ in 0..depth {
+        json.push_str("]}");
+    }
+    json.push_str("}]");
+    json
+}
+
+#[test]
+fn rejects_excessive_plan_depth() {
+    let output = run_with_stdin(&nested_plan_json(33));
+    assert_eq!(output.status.code(), Some(3));
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("maximum supported plan depth"));
+}
+
+#[test]
+fn rejects_excessive_plan_node_count() {
+    let mut json = String::from("[{\"Plan\":{\"Node Type\":\"Append\",\"Plans\":[");
+    for idx in 0..10_001 {
+        if idx > 0 {
+            json.push(',');
+        }
+        json.push_str("{\"Node Type\":\"Seq Scan\"}");
+    }
+    json.push_str("]}}]");
+
+    let output = run_with_stdin(&json);
+    assert_eq!(output.status.code(), Some(3));
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("maximum supported node count"));
+}
