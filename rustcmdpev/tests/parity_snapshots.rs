@@ -47,10 +47,13 @@ fn normalize_snapshot_text(input: &str) -> String {
     format!("{lines}\n")
 }
 
-fn run_pretty_fixture(name: &str) -> String {
+fn run_compat_fixture(name: &str) -> String {
     let output = Command::new(env!("CARGO_BIN_EXE_rustcmdpev"))
         .arg("--input")
         .arg(fixture_path(name))
+        .arg("--compat")
+        .arg("--format")
+        .arg("pretty")
         .arg("--color")
         .arg("always")
         .output()
@@ -70,7 +73,7 @@ fn example_fixture_matches_snapshot() {
         let expected = std::fs::read_to_string(snapshot_path(fixture_name))
             .expect("expected parity snapshot file");
         let expected = normalize_snapshot_text(&expected);
-        let actual = run_pretty_fixture(fixture_name);
+        let actual = run_compat_fixture(fixture_name);
         assert_eq!(actual, expected, "snapshot mismatch for {fixture_name}");
     }
 }
