@@ -1,0 +1,16 @@
+○ Total Cost 10.5
+○ Planning Time: 8.12 ms
+○ Execution Time: 2.78 ms
+┬
+│
+├─⌠ Seq Scan  slowest   costliest   largest 
+│ │ Finds relevant records by sequentially scanning the
+│ │ input record set. When reading from a table, Seq
+│ │ Scans (unlike Index Scans) perform a single read
+│ │ operation (only the table is read).
+│ │ ○ Duration: 0.26 ms 9.4%
+│ │ ○ Cost: 10.50 ms 100.0%
+│ │ ○ Rows: 11
+│ │   on public coaches
+│ │   rows Overestimated by 4.55x
+│ ⌡► coaches.id + coaches.first_name + coaches.last_name

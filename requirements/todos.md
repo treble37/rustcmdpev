@@ -39,7 +39,7 @@ Single consolidated checklist for MVP v1 feature parity with `gocmdpev`, plus im
 - [x] Extract hardcoded thresholds/labels/tree characters into named constants.
 
 ### G4: Rendering determinism and parity testing
-- [ ] Add fixture-based parity tests comparing rendered output to expected snapshots.
+- [x] Add fixture-based parity tests comparing rendered output to expected snapshots.
 - [ ] Add at least 4 parity fixtures, including `example.json` and 3 real-world plans.
 - [ ] Normalize ANSI and insignificant whitespace in parity comparisons.
 - [ ] Run parity snapshot tests in `--compat` mode.

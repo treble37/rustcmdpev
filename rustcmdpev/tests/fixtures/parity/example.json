@@ -1,0 +1,25 @@
+[
+  {
+    "Plan": {
+      "Node Type": "Seq Scan",
+      "Relation Name": "coaches",
+      "Schema": "public",
+      "Alias": "coaches",
+      "Startup Cost": 0.0,
+      "Total Cost": 10.5,
+      "Plan Rows": 50,
+      "Plan Width": 1572,
+      "Actual Startup Time": 0.258,
+      "Actual Total Time": 0.260,
+      "Actual Rows": 11,
+      "Actual Loops": 1,
+      "Output": [
+        "coaches.id",
+        "coaches.first_name",
+        "coaches.last_name"
+      ]
+    },
+    "Planning Time": 8.116,
+    "Execution Time": 2.776
+  }
+]
