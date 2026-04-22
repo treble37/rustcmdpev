@@ -8,11 +8,13 @@ use crate::display::format::{duration_to_string, format_details, format_percent,
 use crate::structure::data::explain::Explain;
 use crate::structure::data::plan::Plan;
 
+/// Options controlling pretty-plan rendering.
 #[derive(Debug, Clone, Copy)]
 pub struct RenderOptions {
     pub width: usize,
 }
 
+/// Render a processed explain tree into terminal-friendly text.
 pub fn render_explain(explain: &Explain, options: RenderOptions) -> String {
     let mut buffer = String::new();
     writeln!(&mut buffer, "○ Total Cost {}", explain.total_cost).expect("write to string");

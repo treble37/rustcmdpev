@@ -35,15 +35,18 @@ impl fmt::Display for VisualizeError {
 
 impl Error for VisualizeError {}
 
+/// Apply analysis passes to a validated explain document.
 pub fn analyze_explain(explain: Explain) -> Explain {
     analysis::process_all(explain)
 }
 
+/// Parse raw input and run the full validation and analysis pipeline.
 pub fn parse_and_process(input: &str) -> Result<Explain, VisualizeError> {
     let explain = parser::parse_explain_document(input)?;
     Ok(analyze_explain(explain))
 }
 
+/// Produce pretty rendered output without performing stdout I/O.
 pub fn render_visualization(input: &str, width: usize) -> Result<String, VisualizeError> {
     let explain = parse_and_process(input)?;
     Ok(render::render_explain(
@@ -52,6 +55,7 @@ pub fn render_visualization(input: &str, width: usize) -> Result<String, Visuali
     ))
 }
 
+/// Legacy convenience entry point that returns the analyzed explain.
 pub fn visualize(input: String, width: usize) -> Result<Explain, VisualizeError> {
     let explain = parse_and_process(input.as_str())?;
     let _rendered = render::render_explain(&explain, render::RenderOptions { width });

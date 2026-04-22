@@ -1,12 +1,14 @@
 use crate::structure::data::plan::Plan;
 use crate::VisualizeError;
 
+/// Summary information derived while validating a plan tree.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct TreeStats {
     pub node_count: usize,
     pub max_depth: usize,
 }
 
+/// A validated plan tree with explicit root node semantics.
 #[derive(Debug, Clone)]
 pub struct PlanTree {
     root: Plan,
@@ -14,19 +16,23 @@ pub struct PlanTree {
 }
 
 impl PlanTree {
+    /// Build a validated plan tree rooted at the supplied plan node.
     pub fn new(root: Plan) -> Result<Self, VisualizeError> {
         let stats = validate_node(&root, 0, "Plan")?;
         Ok(Self { root, stats })
     }
 
+    /// Return the validated root plan node.
     pub fn root(&self) -> &Plan {
         &self.root
     }
 
+    /// Return aggregate tree statistics gathered during validation.
     pub fn stats(&self) -> TreeStats {
         self.stats
     }
 
+    /// Consume the wrapper and return the validated root node.
     pub fn into_root(self) -> Plan {
         self.root
     }
