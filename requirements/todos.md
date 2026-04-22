@@ -52,7 +52,7 @@ Single consolidated checklist for MVP v1 feature parity with `gocmdpev`, plus im
 - [x] Replace `.travis.yml` with GitHub Actions CI for `build`, `test`, `clippy`, and `fmt`.
 - [x] Add CI matrix for Linux/macOS/Windows.
 - [x] Define and enforce MSRV in CI.
-- [ ] Publish versioned releases with binaries for Linux/macOS/Windows.
+- [x] Publish versioned releases with binaries for Linux/macOS/Windows.
 - [ ] Establish semantic versioning and tag conventions.
 
 ### G6: Documentation and install baseline
