@@ -61,7 +61,7 @@ Single consolidated checklist for MVP v1 feature parity with `gocmdpev`, plus im
 - [x] Add release checklist item for install smoke verification.
 - [x] Add Linux/macOS/Windows psql workflow examples (including PowerShell/CMD where needed).
 - [ ] Validate documented command examples in CI/docs checks.
-- [ ] Add `example.json` as a bundled sample plan fixture.
+- [x] Add `example.json` as a bundled sample plan fixture.
 - [ ] Add CI smoke test for `cat example.json | rustcmdpev`.
 
 ## P1 (should ship shortly after MVP cut)

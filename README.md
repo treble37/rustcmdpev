@@ -73,7 +73,7 @@ cargo build --release -p rustcmdpev
 2. Run the bundled example plan:
 
 ```bash
-./target/release/rustcmdpev --input examples/hash_join.json --format pretty --width 80
+./target/release/rustcmdpev --input example.json --format pretty --width 80
 ```
 
 3. Or use the reproducible demo alias:
@@ -105,7 +105,7 @@ Cross-platform `psql` examples for Linux, macOS, PowerShell, and CMD are documen
 Quickstart with a bundled example:
 
 ```bash
-cargo run -p rustcmdpev -- --input examples/hash_join.json --format pretty --width 80
+cargo run -p rustcmdpev -- --input example.json --format pretty --width 80
 ```
 
 Reproducible local demo alias:
@@ -154,6 +154,7 @@ rustcmdpev --help
 
 ### Examples
 
+- `example.json`: canonical bundled sample plan for docs, CI smoke tests, and install verification.
 - `examples/basic_seq_scan.json`: smallest useful sample plan for smoke tests and docs.
 - `examples/hash_join.json`: nested tree sample for demos and screenshots.
 

@@ -8,7 +8,7 @@ This checklist summarizes feature parity with gocmdpev based on its README. See 
 - [x] Documents a Homebrew install path or explicit roadmap entry.
 - [ ] Provides Python 3 bindings via a build target.
 - [ ] Provides Ruby on Rails integration guidance (gem).
-- [ ] Includes a bundled `example.json` sample file.
+- [x] Includes a bundled `example.json` sample file.
 
 ## MVP v1 stdin JSON contract
 
