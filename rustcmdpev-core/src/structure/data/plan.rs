@@ -137,6 +137,18 @@ impl Default for Plan {
 }
 
 impl Plan {
+    pub fn child_count(&self) -> usize {
+        self.plans.len()
+    }
+
+    pub fn has_children(&self) -> bool {
+        !self.plans.is_empty()
+    }
+
+    pub fn is_leaf(&self) -> bool {
+        self.plans.is_empty()
+    }
+
     pub fn analysis_flags(&self) -> PlanAnalysisFlags {
         self.analysis_flags.clone()
     }

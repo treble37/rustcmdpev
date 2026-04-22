@@ -33,6 +33,11 @@ impl PlanTree {
 }
 
 fn validate_node(plan: &Plan, depth: usize, path: &str) -> Result<TreeStats, VisualizeError> {
+    if plan.node_type.trim().is_empty() {
+        return Err(VisualizeError::InvalidPlan(format!(
+            "{path}.Node Type must be populated"
+        )));
+    }
     validate_non_negative(plan.estimates.startup_cost, &format!("{path}.Startup Cost"))?;
     validate_non_negative(plan.estimates.total_cost, &format!("{path}.Total Cost"))?;
     validate_non_negative(plan.actuals.actual_startup_time, &format!("{path}.Actual Startup Time"))?;

@@ -2,6 +2,7 @@ use rustcmdpev_core::parser::{build_domain_explain, parse_raw_explains, validate
 use rustcmdpev_core::render::{render_explain, RenderOptions};
 use rustcmdpev_core::structure::data::io_timing::PlanIoTiming;
 use rustcmdpev_core::structure::raw::{PostgresSchemaProfile, RawPlanIoTiming};
+use rustcmdpev_core::structure::tree::PlanTree;
 use rustcmdpev_core::VisualizeError;
 
 #[test]
@@ -155,6 +156,22 @@ fn grouped_raw_models_preserve_typed_identity_predicates_and_buffers() {
 }
 
 #[test]
+fn plan_tree_reports_explicit_node_and_depth_semantics() {
+    let explain = rustcmdpev_core::parse_and_process(
+        r#"[{"Plan":{"Node Type":"Nested Loop","Startup Cost":0.0,"Total Cost":2.0,"Actual Startup Time":0.1,"Actual Total Time":0.3,"Actual Rows":2,"Actual Loops":1,"Plans":[{"Node Type":"Seq Scan","Startup Cost":0.0,"Total Cost":1.0,"Actual Startup Time":0.05,"Actual Total Time":0.1,"Actual Rows":2,"Actual Loops":1}]},"Execution Time":0.3}]"#,
+    )
+    .expect("expected parsed explain");
+
+    let tree = PlanTree::new(explain.plan.clone()).expect("expected valid plan tree");
+
+    assert_eq!(tree.root().child_count(), 1);
+    assert!(tree.root().has_children());
+    assert!(!tree.root().is_leaf());
+    assert_eq!(tree.stats().node_count, 2);
+    assert_eq!(tree.stats().max_depth, 1);
+}
+
+#[test]
 fn validated_tree_rejects_negative_numeric_invariants() {
     let input = r#"
         [
@@ -176,6 +193,32 @@ fn validated_tree_rejects_negative_numeric_invariants() {
     match err {
         VisualizeError::InvalidPlan(message) => {
             assert!(message.contains("Startup Cost"));
+        }
+        other => panic!("expected invalid plan error, got {other:?}"),
+    }
+}
+
+#[test]
+fn validated_tree_rejects_missing_node_types() {
+    let input = r#"
+        [
+          {
+            "Plan": {
+              "Startup Cost": 0.00,
+              "Total Cost": 4.00,
+              "Actual Startup Time": 0.05,
+              "Actual Total Time": 0.10,
+              "Actual Rows": 3,
+              "Actual Loops": 1
+            }
+          }
+        ]
+    "#;
+
+    let err = rustcmdpev_core::parse_and_process(input).expect_err("expected invariant error");
+    match err {
+        VisualizeError::InvalidPlan(message) => {
+            assert!(message.contains("Node Type"));
         }
         other => panic!("expected invalid plan error, got {other:?}"),
     }
