@@ -4,7 +4,7 @@ Single consolidated checklist for MVP v1 feature parity with `gocmdpev`, plus im
 
 ## P0 (must ship for MVP v1)
 
-### Parity contract and release gating
+### G0: Parity contract and release gating
 - [ ] Add a dated MVP v1 parity contract section in `docs/src/parity.md`.
 - [ ] For each parity item, record `status`, `owner`, and `target version`.
 - [ ] Mark each parity item as binary pass/fail with explicit acceptance checks.
@@ -12,7 +12,7 @@ Single consolidated checklist for MVP v1 feature parity with `gocmdpev`, plus im
 - [ ] Block v1.0 release if any P0 parity requirement is incomplete.
 - [ ] Link parity report from release notes/checklist.
 
-### CLI, input, and output compatibility
+### G1: CLI, input, and output compatibility
 - [x] Add `clap`-based CLI with documented flags and help output.
 - [x] Define and document stdin JSON contract for MVP parity behavior.
 - [x] Support input from file (`--input`) in addition to stdin.
@@ -22,7 +22,7 @@ Single consolidated checklist for MVP v1 feature parity with `gocmdpev`, plus im
 - [ ] Ensure Windows console color behavior works correctly.
 - [x] Add verbose/quiet modes and structured logging (`tracing` + `tracing-subscriber`).
 
-### Safety and error handling
+### G2: Safety and error handling
 - [x] Remove panic paths (`unwrap`/`expect`) from core parse/process flow for valid inputs.
 - [x] Return typed errors from core processing path and map them to CLI exit codes.
 - [x] Return non-zero exit code for empty stdin input with actionable error text.
@@ -30,7 +30,7 @@ Single consolidated checklist for MVP v1 feature parity with `gocmdpev`, plus im
 - [x] Validate input JSON structure and required plan invariants before processing.
 - [ ] Add max plan depth / large-input guards to prevent failure on extreme plans.
 
-### Core model and processing correctness
+### G3: Core model and processing correctness
 - [ ] Implement a clear parser pipeline: raw JSON -> domain model -> validated plan tree.
 - [ ] Keep strongly typed serde models for Postgres EXPLAIN fields with version-tolerant optional fields.
 - [ ] Add schema-aware handling for Postgres version field differences.
@@ -38,7 +38,7 @@ Single consolidated checklist for MVP v1 feature parity with `gocmdpev`, plus im
 - [ ] Separate analysis logic (estimates, actuals, outliers) from rendering logic.
 - [ ] Extract hardcoded thresholds/labels/tree characters into named constants.
 
-### Rendering determinism and parity testing
+### G4: Rendering determinism and parity testing
 - [ ] Add fixture-based parity tests comparing rendered output to expected snapshots.
 - [ ] Add at least 4 parity fixtures, including `example.json` and 3 real-world plans.
 - [ ] Normalize ANSI and insignificant whitespace in parity comparisons.
@@ -48,14 +48,14 @@ Single consolidated checklist for MVP v1 feature parity with `gocmdpev`, plus im
 - [ ] Gate merges in CI on parity test pass.
 - [ ] Verify deterministic `--compat` output on Linux/macOS/Windows in CI.
 
-### CI/CD and release essentials
+### G5: CI/CD and release essentials
 - [ ] Replace `.travis.yml` with GitHub Actions CI for `build`, `test`, `clippy`, and `fmt`.
 - [ ] Add CI matrix for Linux/macOS/Windows.
 - [ ] Define and enforce MSRV in CI.
 - [ ] Publish versioned releases with binaries for Linux/macOS/Windows.
 - [ ] Establish semantic versioning and tag conventions.
 
-### Documentation and install baseline
+### G6: Documentation and install baseline
 - [ ] Add `cargo install rustcmdpev` instructions to README/docs.
 - [ ] Add Homebrew install path or explicit Homebrew roadmap entry.
 - [ ] Add release checklist item for install smoke verification.
@@ -66,20 +66,20 @@ Single consolidated checklist for MVP v1 feature parity with `gocmdpev`, plus im
 
 ## P1 (should ship shortly after MVP cut)
 
-### Architecture and maintainability
+### G0: Architecture and maintainability
 - [x] Convert to a workspace with `rustcmdpev-core` (lib) and `rustcmdpev` (bin).
 - [ ] Finalize render module boundaries (`display/colors`, `display/tree`, `display/format`).
 - [ ] Refactor large `Plan` model into grouped sub-structs where practical.
 - [ ] Improve function signatures by introducing context structs and reducing large parameter lists.
 - [ ] Reduce unnecessary cloning and ownership churn in hot paths.
 
-### Output features and UX polish
+### G1: Output features and UX polish
 - [ ] Add theme support (`dark`, `light`, `no-color`) and condensed/verbose render modes.
 - [ ] Add summary block improvements (cost, time, loops, memory, buffers).
 - [ ] Add customization for tree drawing characters/styles.
 - [ ] Add `--postgres-version` hinting for parser quirks.
 
-### Quality and testing depth
+### G2: Quality and testing depth
 - [ ] Expand unit tests for parsing oddities and calculation functions.
 - [ ] Expand integration tests across diverse PostgreSQL plan types.
 - [ ] Add property tests for plan invariants (e.g., non-negative costs, child consistency).
@@ -87,7 +87,7 @@ Single consolidated checklist for MVP v1 feature parity with `gocmdpev`, plus im
 - [ ] Add performance benchmarks for parsing/rendering.
 - [ ] Enable strict linting policy (`clippy`, warning policy) and project rustfmt config.
 
-### Distribution and project hygiene
+### G3: Distribution and project hygiene
 - [ ] Add automated changelog generation (`git-cliff`).
 - [ ] Publish prebuilt tarballs with checksums (and package metadata for platform managers).
 - [ ] Add license/header and dependency policy checks (`cargo-deny`).
@@ -98,7 +98,7 @@ Single consolidated checklist for MVP v1 feature parity with `gocmdpev`, plus im
 
 ## P2 (backlog and optional extensions)
 
-### Performance and optimization
+### G0: Performance and optimization
 - [ ] Investigate zero-copy deserialization opportunities (`Cow<'_, str>`) where beneficial.
 - [ ] Support streaming JSON parse from reader for very large plans.
 - [ ] Pre-compute aggregate metrics once and reuse in rendering.
@@ -106,13 +106,13 @@ Single consolidated checklist for MVP v1 feature parity with `gocmdpev`, plus im
 - [ ] Evaluate iterative traversal/memoization for deep tree performance.
 - [ ] Reduce allocations in hot paths (reuse objects/buffers where justified).
 
-### Dependency and modernization follow-up
+### G1: Dependency and modernization follow-up
 - [ ] Continue modernizing Rust patterns (`?`, targeted `const fn`, idiomatic APIs).
 - [ ] Audit and update dependency set; evaluate replacing `phf` if maintainability improves.
 - [ ] Add automated dependency update workflow.
 - [ ] Add CI coverage reporting.
 
-### Feature extensions (non-MVP)
+### G2: Feature extensions (non-MVP)
 - [ ] Decide and document MVP posture for Python bindings (`include` or `defer`) with date/owner/rationale.
 - [ ] Decide and document MVP posture for Rails integration (`include` or `defer`) with date/owner/rationale.
 - [ ] Evaluate optional direct Postgres connection mode (feature-flagged).
@@ -120,7 +120,7 @@ Single consolidated checklist for MVP v1 feature parity with `gocmdpev`, plus im
 - [ ] Evaluate optional CSV export.
 - [ ] Evaluate optional opt-in anonymous usage telemetry (off by default).
 
-### Advanced docs and i18n ideas
+### G3: Advanced docs and i18n ideas
 - [ ] Improve inline comments for complex algorithms and design tradeoffs.
 - [ ] Expand duration formatting options and user preference support.
 - [ ] Evaluate making operator descriptions externally configurable and i18n-ready.
