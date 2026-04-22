@@ -20,11 +20,11 @@ pub fn duration_to_string(value: f64) -> colored::ColoredString {
 pub fn format_details(plan: plan::Plan) -> String {
     let mut details = vec![];
 
-    if plan.scan_direction != "" {
+    if !plan.scan_direction.is_empty() {
         details.push(plan.scan_direction);
     }
 
-    if plan.strategy != "" {
+    if !plan.strategy.is_empty() {
         details.push(plan.strategy);
     }
 
@@ -68,5 +68,5 @@ pub fn get_terminator(index: usize, plan: plan::Plan) -> String {
 }
 
 pub fn format_percent(number: f64, precision: usize) -> String {
-    return format!("{:.1$}%", number, precision);
+    format!("{:.1$}%", number, precision)
 }
