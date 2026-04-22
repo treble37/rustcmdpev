@@ -49,7 +49,7 @@ Single consolidated checklist for MVP v1 feature parity with `gocmdpev`, plus im
 - [x] Verify deterministic `--compat` output on Linux/macOS/Windows in CI.
 
 ### G5: CI/CD and release essentials
-- [ ] Replace `.travis.yml` with GitHub Actions CI for `build`, `test`, `clippy`, and `fmt`.
+- [x] Replace `.travis.yml` with GitHub Actions CI for `build`, `test`, `clippy`, and `fmt`.
 - [ ] Add CI matrix for Linux/macOS/Windows.
 - [ ] Define and enforce MSRV in CI.
 - [ ] Publish versioned releases with binaries for Linux/macOS/Windows.
