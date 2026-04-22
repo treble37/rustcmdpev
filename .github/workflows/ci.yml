@@ -6,6 +6,9 @@ on:
       - main
   pull_request:
 
+env:
+  MSRV: "1.84"
+
 jobs:
   fmt:
     runs-on: ubuntu-latest
@@ -34,6 +37,16 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - run: cargo build --workspace --locked
+
+  msrv:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ env.MSRV }}
+      - run: bash scripts/check_msrv.sh "$MSRV"
+      - run: cargo check --workspace --locked
 
   test:
     strategy:
