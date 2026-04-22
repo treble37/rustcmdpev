@@ -1,6 +1,7 @@
 use rustcmdpev_core::parser::{build_domain_explain, parse_raw_explains, validate_plan_tree};
 use rustcmdpev_core::render::{render_explain, RenderOptions};
-use rustcmdpev_core::structure::raw::PostgresSchemaProfile;
+use rustcmdpev_core::structure::data::io_timing::PlanIoTiming;
+use rustcmdpev_core::structure::raw::{PostgresSchemaProfile, RawPlanIoTiming};
 use rustcmdpev_core::VisualizeError;
 
 #[test]
@@ -76,6 +77,40 @@ fn schema_aware_parser_accepts_legacy_io_timing_aliases() {
     assert_eq!(explain.plan.io_read_time, 1.25);
     assert_eq!(explain.plan.io_write_time, 0.75);
     assert_eq!(explain.postgres_version.as_deref(), Some("12.14"));
+}
+
+#[test]
+fn schema_aware_parser_prefers_canonical_io_fields_for_modern_versions() {
+    let io_timing = RawPlanIoTiming {
+        canonical: PlanIoTiming {
+            io_read_time: 2.5,
+            io_write_time: 3.5,
+        },
+        legacy_io_read_time: Some(9.5),
+        legacy_io_write_time: Some(10.5),
+    };
+
+    let resolved = io_timing.resolve(PostgresSchemaProfile::ModernIoTiming);
+
+    assert_eq!(resolved.io_read_time, 2.5);
+    assert_eq!(resolved.io_write_time, 3.5);
+}
+
+#[test]
+fn schema_aware_parser_falls_back_to_legacy_io_fields_for_legacy_versions() {
+    let io_timing = RawPlanIoTiming {
+        canonical: PlanIoTiming {
+            io_read_time: 0.0,
+            io_write_time: 0.0,
+        },
+        legacy_io_read_time: Some(7.25),
+        legacy_io_write_time: Some(8.25),
+    };
+
+    let resolved = io_timing.resolve(PostgresSchemaProfile::LegacyIoTiming);
+
+    assert_eq!(resolved.io_read_time, 7.25);
+    assert_eq!(resolved.io_write_time, 8.25);
 }
 
 #[test]

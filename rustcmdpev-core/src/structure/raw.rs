@@ -100,30 +100,7 @@ impl RawPlan {
             .map(|plan| plan.into_domain(schema_profile))
             .collect::<Result<Vec<_>, _>>()?;
 
-        let (io_read_time, io_write_time) = match schema_profile {
-            PostgresSchemaProfile::LegacyIoTiming => (
-                self.io_timing
-                    .legacy_io_read_time
-                    .or(Some(self.io_timing.canonical.io_read_time))
-                    .unwrap_or_default(),
-                self.io_timing
-                    .legacy_io_write_time
-                    .or(Some(self.io_timing.canonical.io_write_time))
-                    .unwrap_or_default(),
-            ),
-            PostgresSchemaProfile::ModernIoTiming | PostgresSchemaProfile::Unknown => (
-                if self.io_timing.canonical.io_read_time == 0.0 {
-                    self.io_timing.legacy_io_read_time.unwrap_or_default()
-                } else {
-                    self.io_timing.canonical.io_read_time
-                },
-                if self.io_timing.canonical.io_write_time == 0.0 {
-                    self.io_timing.legacy_io_write_time.unwrap_or_default()
-                } else {
-                    self.io_timing.canonical.io_write_time
-                },
-            ),
-        };
+        let resolved_io = self.io_timing.resolve(schema_profile);
 
         Ok(Plan {
             actuals: self.actuals,
@@ -136,8 +113,8 @@ impl RawPlan {
             heap_fetches: self.buffers.heap_fetches,
             index_condition: self.predicates.index_condition,
             index_name: self.identity.index_name,
-            io_read_time,
-            io_write_time,
+            io_read_time: resolved_io.io_read_time,
+            io_write_time: resolved_io.io_write_time,
             join_type: self.identity.join_type,
             local_dirtied_blocks: self.buffers.local_dirtied_blocks,
             local_hit_blocks: self.buffers.local_hit_blocks,
@@ -161,6 +138,35 @@ impl RawPlan {
             temp_written_blocks: self.buffers.temp_written_blocks,
             plans,
         })
+    }
+}
+
+impl RawPlanIoTiming {
+    pub fn resolve(self, schema_profile: PostgresSchemaProfile) -> PlanIoTiming {
+        match schema_profile {
+            PostgresSchemaProfile::LegacyIoTiming => PlanIoTiming {
+                io_read_time: self
+                    .legacy_io_read_time
+                    .or(Some(self.canonical.io_read_time))
+                    .unwrap_or_default(),
+                io_write_time: self
+                    .legacy_io_write_time
+                    .or(Some(self.canonical.io_write_time))
+                    .unwrap_or_default(),
+            },
+            PostgresSchemaProfile::ModernIoTiming | PostgresSchemaProfile::Unknown => PlanIoTiming {
+                io_read_time: if self.canonical.io_read_time == 0.0 {
+                    self.legacy_io_read_time.unwrap_or_default()
+                } else {
+                    self.canonical.io_read_time
+                },
+                io_write_time: if self.canonical.io_write_time == 0.0 {
+                    self.legacy_io_write_time.unwrap_or_default()
+                } else {
+                    self.canonical.io_write_time
+                },
+            },
+        }
     }
 }
 
