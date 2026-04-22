@@ -25,7 +25,21 @@ mdbook build docs
 
 # Installation
 
-Right now the installation process is still source-first, but the repository is prepared for packaged releases.
+Use the crates.io install path once a tagged release is published:
+
+```bash
+cargo install rustcmdpev --locked
+rustcmdpev --help
+```
+
+For local checkout work before a release is published, install from the workspace:
+
+```bash
+cargo install --path rustcmdpev --locked
+rustcmdpev --help
+```
+
+If you prefer not to install globally, a source-first build still works:
 
 1. [Install Rust](https://www.rust-lang.org/tools/install)
 2. Build the workspace:

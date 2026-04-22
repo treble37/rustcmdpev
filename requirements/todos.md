@@ -56,7 +56,7 @@ Single consolidated checklist for MVP v1 feature parity with `gocmdpev`, plus im
 - [x] Establish semantic versioning and tag conventions.
 
 ### G6: Documentation and install baseline
-- [ ] Add `cargo install rustcmdpev` instructions to README/docs.
+- [x] Add `cargo install rustcmdpev` instructions to README/docs.
 - [ ] Add Homebrew install path or explicit Homebrew roadmap entry.
 - [ ] Add release checklist item for install smoke verification.
 - [ ] Add Linux/macOS/Windows psql workflow examples (including PowerShell/CMD where needed).
