@@ -1,0 +1,2 @@
+[alias]
+demo = "run -p rustcmdpev -- --input examples/hash_join.json --format pretty --width 80"

@@ -93,7 +93,7 @@ Single consolidated checklist for MVP v1 feature parity with `gocmdpev`, plus im
 - [x] Add license/header and dependency policy checks (`cargo-deny`).
 - [x] Add `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, and issue templates.
 - [ ] Add README badges for crates/docs/CI and improve quickstart docs.
-- [ ] Add `examples/` plans and a reproducible local demo target.
+- [x] Add `examples/` plans and a reproducible local demo target.
 - [ ] Add API/module-level docs for public surfaces and complex logic.
 
 ## P2 (backlog and optional extensions)
