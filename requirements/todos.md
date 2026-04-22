@@ -44,7 +44,7 @@ Single consolidated checklist for MVP v1 feature parity with `gocmdpev`, plus im
 - [x] Normalize ANSI and insignificant whitespace in parity comparisons.
 - [x] Run parity snapshot tests in `--compat` mode.
 - [x] Add deterministic rendering snapshots to verify stable output across runs.
-- [ ] Add integration tests for success and failure exit codes.
+- [x] Add integration tests for success and failure exit codes.
 - [ ] Gate merges in CI on parity test pass.
 - [ ] Verify deterministic `--compat` output on Linux/macOS/Windows in CI.
 
