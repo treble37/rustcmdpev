@@ -90,7 +90,7 @@ Single consolidated checklist for MVP v1 feature parity with `gocmdpev`, plus im
 ### G10: Distribution and project hygiene
 - [x] Add automated changelog generation (`git-cliff`).
 - [x] Publish prebuilt tarballs with checksums (and package metadata for platform managers).
-- [ ] Add license/header and dependency policy checks (`cargo-deny`).
+- [x] Add license/header and dependency policy checks (`cargo-deny`).
 - [ ] Add `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, and issue templates.
 - [ ] Add README badges for crates/docs/CI and improve quickstart docs.
 - [ ] Add `examples/` plans and a reproducible local demo target.
