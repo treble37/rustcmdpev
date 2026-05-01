@@ -15,6 +15,21 @@ pub struct RenderOptions {
     pub width: usize,
 }
 
+/// Mutable context threaded through the recursive render. Holds the per-render
+/// state that does not vary as the traversal descends so call sites stay focused
+/// on the per-node arguments they actually care about.
+struct RenderContext<'a> {
+    buffer: &'a mut String,
+    explain: &'a Explain,
+    options: RenderOptions,
+}
+
+/// Per-node positional arguments grouped to keep recursion signatures small.
+struct NodePosition {
+    prefix: String,
+    last_child: bool,
+}
+
 /// Render a processed explain tree into terminal-friendly text.
 pub fn render_explain(explain: &Explain, options: RenderOptions) -> String {
     let mut buffer = String::new();
@@ -37,30 +52,32 @@ pub fn render_explain(explain: &Explain, options: RenderOptions) -> String {
         color_format(TREE_ROOT_MARKER.to_string(), "output")
     )
     .expect("write to string");
-    write_plan(
-        &mut buffer,
+    let mut ctx = RenderContext {
+        buffer: &mut buffer,
         explain,
+        options,
+    };
+    let last_child = explain.plan.plans.len() == 1;
+    write_plan(
+        &mut ctx,
         &explain.plan,
-        String::new(),
-        options.width,
-        explain.plan.plans.len() == 1,
+        NodePosition {
+            prefix: String::new(),
+            last_child,
+        },
     );
     buffer
 }
 
-fn write_plan(
-    buffer: &mut String,
-    explain: &Explain,
-    plan: &Plan,
-    prefix: String,
-    width: usize,
-    last_child: bool,
-) {
+fn write_plan(ctx: &mut RenderContext<'_>, plan: &Plan, position: NodePosition) {
+    let explain = ctx.explain;
+    let width = ctx.options.width;
+    let NodePosition { prefix, last_child } = position;
     let mut source_prefix = prefix.clone();
     let mut current_prefix = prefix;
 
     writeln!(
-        buffer,
+        ctx.buffer,
         "{}{}",
         color_format(source_prefix.clone(), "prefix"),
         color_format(TREE_VERTICAL.to_string(), "prefix")
@@ -70,7 +87,7 @@ fn write_plan(
     let joint = node_joint(plan.plans.len(), last_child);
 
     writeln!(
-        buffer,
+        ctx.buffer,
         "{}{} {}{} {}",
         color_format(current_prefix.clone(), "prefix"),
         color_format(format!("{joint}{TREE_NODE_CONNECTOR}"), "prefix"),
@@ -95,7 +112,7 @@ fn write_plan(
         .collect::<Vec<_>>()
     {
         writeln!(
-            buffer,
+            ctx.buffer,
             "{}{}",
             color_format(current_prefix.clone(), "prefix"),
             color_format(line.to_string(), "muted")
@@ -104,7 +121,7 @@ fn write_plan(
     }
 
     writeln!(
-        buffer,
+        ctx.buffer,
         "{}○ Duration: {} {}",
         color_format(current_prefix.clone(), "prefix"),
         duration_to_string(plan.actuals.actual_duration),
@@ -115,7 +132,7 @@ fn write_plan(
     )
     .expect("write to string");
     writeln!(
-        buffer,
+        ctx.buffer,
         "{}○ Cost: {} {}",
         color_format(current_prefix.clone(), "prefix"),
         duration_to_string(plan.actuals.actual_cost),
@@ -123,7 +140,7 @@ fn write_plan(
     )
     .expect("write to string");
     writeln!(
-        buffer,
+        ctx.buffer,
         "{}○ Rows: {}",
         color_format(current_prefix.clone(), "prefix"),
         plan.actuals.actual_rows
@@ -134,7 +151,7 @@ fn write_plan(
 
     if !plan.identity.join_type.is_empty() {
         writeln!(
-            buffer,
+            ctx.buffer,
             "{}{} {}",
             color_format(current_prefix.clone(), "prefix"),
             color_format("join".to_string(), "muted"),
@@ -145,7 +162,7 @@ fn write_plan(
 
     if !plan.identity.relation_name.is_empty() {
         writeln!(
-            buffer,
+            ctx.buffer,
             "{}{} {} {}",
             color_format(current_prefix.clone(), "prefix"),
             color_format("on".to_string(), "muted"),
@@ -157,7 +174,7 @@ fn write_plan(
 
     if !plan.identity.index_name.is_empty() {
         writeln!(
-            buffer,
+            ctx.buffer,
             "{}{} {}",
             color_format(current_prefix.clone(), "prefix"),
             color_format("using".to_string(), "muted"),
@@ -168,7 +185,7 @@ fn write_plan(
 
     if !plan.predicates.index_condition.is_empty() {
         writeln!(
-            buffer,
+            ctx.buffer,
             "{}{} {}",
             color_format(current_prefix.clone(), "prefix"),
             color_format("condition".to_string(), "muted"),
@@ -179,7 +196,7 @@ fn write_plan(
 
     if !plan.predicates.filter.is_empty() {
         writeln!(
-            buffer,
+            ctx.buffer,
             "{}{} {} [-{} rows]",
             color_format(current_prefix.clone(), "prefix"),
             color_format("filter".to_string(), "muted"),
@@ -191,7 +208,7 @@ fn write_plan(
 
     if !plan.predicates.hash_condition.is_empty() {
         writeln!(
-            buffer,
+            ctx.buffer,
             "{}{} {}",
             color_format(current_prefix.clone(), "prefix"),
             color_format("on".to_string(), "muted"),
@@ -202,7 +219,7 @@ fn write_plan(
 
     if !plan.identity.cte_name.is_empty() {
         writeln!(
-            buffer,
+            ctx.buffer,
             "{}CTE {}",
             color_format(current_prefix.clone(), "prefix"),
             plan.identity.cte_name
@@ -212,7 +229,7 @@ fn write_plan(
 
     if plan.analysis_flags.planner_row_estimate_factor != 0.0 {
         writeln!(
-            buffer,
+            ctx.buffer,
             "{}{} {}estimated {} {:.2}x",
             color_format(current_prefix.clone(), "prefix"),
             color_format("rows".to_string(), "muted"),
@@ -230,7 +247,7 @@ fn write_plan(
         let wrapped_output = textwrap::fill(&joined_output, cols);
         for (index, line) in wrapped_output.split('\n').enumerate() {
             writeln!(
-                buffer,
+                ctx.buffer,
                 "{}{}",
                 color_format(current_prefix.clone(), "prefix"),
                 color_format(format!("{}{}", output_terminator(index, plan), line), "output")
@@ -239,14 +256,59 @@ fn write_plan(
         }
     }
 
+    let last_index = plan.plans.len().saturating_sub(1);
     for (index, child_plan) in plan.plans.iter().enumerate() {
         write_plan(
-            buffer,
-            explain,
+            ctx,
             child_plan,
-            source_prefix.clone(),
-            width,
-            index == plan.plans.len() - 1,
+            NodePosition {
+                prefix: source_prefix.clone(),
+                last_child: index == last_index,
+            },
         );
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::structure::data::actuals::PlanActuals;
+    use crate::structure::data::estimates::PlanEstimates;
+
+    fn child_plan(node_type: &str) -> Plan {
+        let mut plan = Plan::default();
+        plan.identity.node_type = node_type.to_string();
+        plan.actuals = PlanActuals {
+            actual_total_time: 1.0,
+            actual_duration: 1.0,
+            actual_rows: 5,
+            actual_loops: 1,
+            ..PlanActuals::default()
+        };
+        plan.estimates = PlanEstimates {
+            total_cost: 1.0,
+            ..PlanEstimates::default()
+        };
+        plan
+    }
+
+    #[test]
+    fn render_context_threads_explain_and_options_into_recursion() {
+        let mut root = child_plan("Hash Join");
+        root.plans.push(child_plan("Seq Scan"));
+        root.plans.push(child_plan("Index Scan"));
+        let explain = Explain {
+            execution_time: 5.0,
+            total_cost: 4.0,
+            plan: root,
+            ..Explain::default()
+        };
+
+        let rendered = render_explain(&explain, RenderOptions { width: 80 });
+
+        assert!(rendered.contains("Hash Join"));
+        assert!(rendered.contains("Seq Scan"));
+        assert!(rendered.contains("Index Scan"));
+        assert!(rendered.contains("○ Total Cost"));
     }
 }

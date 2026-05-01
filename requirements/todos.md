@@ -70,7 +70,7 @@ Single consolidated checklist for MVP v1 feature parity with `gocmdpev`, plus im
 - [x] Convert to a workspace with `rustcmdpev-core` (lib) and `rustcmdpev` (bin).
 - [x] Finalize render module boundaries (`display/colors`, `display/tree`, `display/format`).
 - [x] Refactor large `Plan` model into grouped sub-structs where practical.
-- [ ] Improve function signatures by introducing context structs and reducing large parameter lists.
+- [x] Improve function signatures by introducing context structs and reducing large parameter lists.
 - [ ] Reduce unnecessary cloning and ownership churn in hot paths.
 
 ### G8: Output features and UX polish
