@@ -37,7 +37,7 @@ pub fn calculate_actuals(explain: Explain, plan: Plan) -> (Explain, Plan) {
     new_plan.actuals.actual_cost = new_plan.estimates.total_cost;
 
     for child_plan in &new_plan.plans {
-        if child_plan.node_type != CTE_SCAN_NODE {
+        if child_plan.identity.node_type != CTE_SCAN_NODE {
             new_plan.actuals.actual_duration -= child_plan.actuals.actual_total_time;
             new_plan.actuals.actual_cost -= child_plan.estimates.total_cost;
         }

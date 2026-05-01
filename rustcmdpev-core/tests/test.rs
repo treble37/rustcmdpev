@@ -133,11 +133,11 @@ mod tests {
         assert_eq!(explain.max_duration, 1.147);
         assert_eq!(explain.execution_time, 2.776);
         assert_eq!(explain.planning_time, 8.116);
-        assert_eq!(explain.plan.alias, "");
-        assert_eq!(explain.plan.node_type, "Hash Join");
+        assert_eq!(explain.plan.identity.alias, "");
+        assert_eq!(explain.plan.identity.node_type, "Hash Join");
         assert_eq!(explain.plan.estimates.plan_rows, 231);
         assert_eq!(explain.plan.estimates.plan_width, 1639);
-        assert_eq!(explain.plan.relation_name, "");
+        assert_eq!(explain.plan.identity.relation_name, "");
     }
     #[test]
     fn test_missing_node_type_plan_field_is_rejected() {

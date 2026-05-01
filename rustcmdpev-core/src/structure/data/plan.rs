@@ -9,124 +9,35 @@ use crate::structure::data::predicates::PlanPredicates;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
-type NodeType = String;
-
-/// The Plan struct
-#[derive(Serialize, Deserialize, Debug, Clone)]
+/// The Plan struct.
+///
+/// Storage is grouped into typed sub-structs (`identity`, `predicates`,
+/// `buffers`, `io_timing`, `estimates`, `actuals`, `analysis_flags`) so that
+/// related fields stay co-located and downstream code can pass cohesive
+/// slices of state instead of every field individually.
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct Plan {
     #[serde(flatten)]
     pub actuals: PlanActuals,
     #[serde(flatten)]
     pub analysis_flags: PlanAnalysisFlags,
-    #[serde(default, rename(deserialize = "Alias"))]
-    pub alias: String,
-    #[serde(default, rename(deserialize = "CTE Name"))]
-    pub cte_name: String,
-    #[serde(default, rename(deserialize = "Filter"))]
-    pub filter: String,
-    #[serde(default, rename(deserialize = "Group Key"))]
-    pub group_key: Vec<String>,
-    #[serde(default, rename(deserialize = "Hash Cond"))]
-    pub hash_condition: String,
-    #[serde(default, rename(deserialize = "Heap Fetches"))]
-    pub heap_fetches: u64,
-    #[serde(default, rename(deserialize = "Index Cond"))]
-    pub index_condition: String,
-    #[serde(default, rename(deserialize = "Index Name"))]
-    pub index_name: String,
-    #[serde(default, rename(deserialize = "I/O Read Time"))]
-    pub io_read_time: f64,
-    #[serde(default, rename(deserialize = "I/O Write Time"))]
-    pub io_write_time: f64,
-    #[serde(default, rename(deserialize = "Join Type"))]
-    pub join_type: String,
-    #[serde(default, rename(deserialize = "Local Dirtied Blocks"))]
-    pub local_dirtied_blocks: u64,
-    #[serde(default, rename(deserialize = "Local Hit Blocks"))]
-    pub local_hit_blocks: u64,
-    #[serde(default, rename(deserialize = "Local Read Blocks"))]
-    pub local_read_blocks: u64,
-    #[serde(default, rename(deserialize = "Local Written Blocks"))]
-    pub local_written_blocks: u64,
-    #[serde(default, rename(deserialize = "Node Type"))]
-    pub node_type: NodeType,
-    #[serde(default, rename(deserialize = "Output"))]
-    pub output: Vec<String>,
-    #[serde(default, rename(deserialize = "Parent Relationship"))]
-    pub parent_relationship: String,
+    #[serde(flatten)]
+    pub identity: PlanIdentity,
+    #[serde(flatten)]
+    pub predicates: PlanPredicates,
+    #[serde(flatten)]
+    pub buffers: PlanBuffers,
     #[serde(flatten)]
     pub estimates: PlanEstimates,
-    #[serde(default, rename(deserialize = "Relation Name"))]
-    pub relation_name: String,
-    #[serde(default, rename(deserialize = "Rows Removed By Filter"))]
-    pub rows_removed_by_filter: u64,
-    #[serde(default, rename(deserialize = "Rows Removed By Index Recheck"))]
-    pub rows_removed_by_index_recheck: u64,
-    #[serde(default, rename(deserialize = "Scan Direction"))]
-    pub scan_direction: String,
-    #[serde(default, rename(deserialize = "Schema"))]
-    pub schema: String,
-    #[serde(default, rename(deserialize = "Shared Dirtied Blocks"))]
-    pub shared_dirtied_blocks: u64,
-    #[serde(default, rename(deserialize = "Shared Hit Blocks"))]
-    pub shared_hit_blocks: u64,
-    #[serde(default, rename(deserialize = "Shared Read Blocks"))]
-    pub shared_read_blocks: u64,
-    #[serde(default, rename(deserialize = "Shared Written Blocks"))]
-    pub shared_written_blocks: u64,
-    #[serde(default, rename(deserialize = "Strategy"))]
-    pub strategy: String,
-    #[serde(default, rename(deserialize = "Temp Read Blocks"))]
-    pub temp_read_blocks: u64,
-    #[serde(default, rename(deserialize = "Temp Written Blocks"))]
-    pub temp_written_blocks: u64,
+    #[serde(flatten)]
+    pub io_timing: PlanIoTiming,
     #[serde(default, rename(deserialize = "Plans"))]
     pub plans: Vec<Plan>,
 }
+
 impl fmt::Display for Plan {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.write_str(&self.node_type)
-    }
-}
-
-impl Default for Plan {
-    fn default() -> Plan {
-        Plan {
-            actuals: PlanActuals::default(),
-            analysis_flags: PlanAnalysisFlags::default(),
-            alias: String::from(""),
-            cte_name: String::from(""),
-            filter: String::from(""),
-            group_key: Vec::new(),
-            hash_condition: String::from(""),
-            heap_fetches: 0,
-            index_condition: String::from(""),
-            index_name: String::from(""),
-            io_read_time: 0.0,
-            io_write_time: 0.0,
-            join_type: String::from(""),
-            local_dirtied_blocks: 0,
-            local_hit_blocks: 0,
-            local_read_blocks: 0,
-            local_written_blocks: 0,
-            node_type: String::from(""),
-            output: Vec::new(),
-            parent_relationship: String::from(""),
-            estimates: PlanEstimates::default(),
-            relation_name: String::from(""),
-            rows_removed_by_filter: 0,
-            rows_removed_by_index_recheck: 0,
-            scan_direction: String::from(""),
-            schema: String::from(""),
-            shared_dirtied_blocks: 0,
-            shared_hit_blocks: 0,
-            shared_read_blocks: 0,
-            shared_written_blocks: 0,
-            strategy: String::from(""),
-            temp_read_blocks: 0,
-            temp_written_blocks: 0,
-            plans: Vec::new(),
-        }
+        f.write_str(&self.identity.node_type)
     }
 }
 
@@ -142,120 +53,54 @@ impl Plan {
     pub fn is_leaf(&self) -> bool {
         self.plans.is_empty()
     }
+}
 
-    pub fn analysis_flags(&self) -> PlanAnalysisFlags {
-        self.analysis_flags.clone()
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn deserializes_postgres_fields_into_grouped_substructs() {
+        let json = r#"{
+            "Node Type": "Index Scan",
+            "Schema": "public",
+            "Relation Name": "coaches",
+            "Index Name": "coaches_pkey",
+            "Index Cond": "(id = 1)",
+            "Filter": "active",
+            "Output": ["a", "b"],
+            "Heap Fetches": 7,
+            "Shared Hit Blocks": 3,
+            "I/O Read Time": 1.5,
+            "I/O Write Time": 2.5,
+            "Plan Rows": 9,
+            "Total Cost": 4.5,
+            "Actual Rows": 9,
+            "Actual Loops": 1
+        }"#;
+
+        let plan: Plan = serde_json::from_str(json).expect("deserialize");
+
+        assert_eq!(plan.identity.node_type, "Index Scan");
+        assert_eq!(plan.identity.schema, "public");
+        assert_eq!(plan.identity.relation_name, "coaches");
+        assert_eq!(plan.identity.index_name, "coaches_pkey");
+        assert_eq!(plan.predicates.index_condition, "(id = 1)");
+        assert_eq!(plan.predicates.filter, "active");
+        assert_eq!(plan.predicates.output, vec!["a", "b"]);
+        assert_eq!(plan.buffers.heap_fetches, 7);
+        assert_eq!(plan.buffers.shared_hit_blocks, 3);
+        assert_eq!(plan.io_timing.io_read_time, 1.5);
+        assert_eq!(plan.io_timing.io_write_time, 2.5);
+        assert_eq!(plan.estimates.plan_rows, 9);
+        assert_eq!(plan.estimates.total_cost, 4.5);
+        assert_eq!(plan.actuals.actual_rows, 9);
     }
 
-    pub fn set_analysis_flags(&mut self, analysis_flags: PlanAnalysisFlags) {
-        self.analysis_flags = analysis_flags;
-    }
-
-    pub fn actuals(&self) -> PlanActuals {
-        self.actuals.clone()
-    }
-
-    pub fn set_actuals(&mut self, actuals: PlanActuals) {
-        self.actuals = actuals;
-    }
-
-    pub fn estimates(&self) -> PlanEstimates {
-        self.estimates.clone()
-    }
-
-    pub fn set_estimates(&mut self, estimates: PlanEstimates) {
-        self.estimates = estimates;
-    }
-
-    pub fn identity(&self) -> PlanIdentity {
-        PlanIdentity {
-            node_type: self.node_type.clone(),
-            parent_relationship: self.parent_relationship.clone(),
-            join_type: self.join_type.clone(),
-            alias: self.alias.clone(),
-            schema: self.schema.clone(),
-            relation_name: self.relation_name.clone(),
-            index_name: self.index_name.clone(),
-            cte_name: self.cte_name.clone(),
-            strategy: self.strategy.clone(),
-            scan_direction: self.scan_direction.clone(),
-        }
-    }
-
-    pub fn set_identity(&mut self, identity: PlanIdentity) {
-        self.node_type = identity.node_type;
-        self.parent_relationship = identity.parent_relationship;
-        self.join_type = identity.join_type;
-        self.alias = identity.alias;
-        self.schema = identity.schema;
-        self.relation_name = identity.relation_name;
-        self.index_name = identity.index_name;
-        self.cte_name = identity.cte_name;
-        self.strategy = identity.strategy;
-        self.scan_direction = identity.scan_direction;
-    }
-
-    pub fn predicates(&self) -> PlanPredicates {
-        PlanPredicates {
-            filter: self.filter.clone(),
-            index_condition: self.index_condition.clone(),
-            hash_condition: self.hash_condition.clone(),
-            group_key: self.group_key.clone(),
-            output: self.output.clone(),
-            rows_removed_by_filter: self.rows_removed_by_filter,
-            rows_removed_by_index_recheck: self.rows_removed_by_index_recheck,
-        }
-    }
-
-    pub fn set_predicates(&mut self, predicates: PlanPredicates) {
-        self.filter = predicates.filter;
-        self.index_condition = predicates.index_condition;
-        self.hash_condition = predicates.hash_condition;
-        self.group_key = predicates.group_key;
-        self.output = predicates.output;
-        self.rows_removed_by_filter = predicates.rows_removed_by_filter;
-        self.rows_removed_by_index_recheck = predicates.rows_removed_by_index_recheck;
-    }
-
-    pub fn buffers(&self) -> PlanBuffers {
-        PlanBuffers {
-            heap_fetches: self.heap_fetches,
-            shared_dirtied_blocks: self.shared_dirtied_blocks,
-            shared_hit_blocks: self.shared_hit_blocks,
-            shared_read_blocks: self.shared_read_blocks,
-            shared_written_blocks: self.shared_written_blocks,
-            local_dirtied_blocks: self.local_dirtied_blocks,
-            local_hit_blocks: self.local_hit_blocks,
-            local_read_blocks: self.local_read_blocks,
-            local_written_blocks: self.local_written_blocks,
-            temp_read_blocks: self.temp_read_blocks,
-            temp_written_blocks: self.temp_written_blocks,
-        }
-    }
-
-    pub fn set_buffers(&mut self, buffers: PlanBuffers) {
-        self.heap_fetches = buffers.heap_fetches;
-        self.shared_dirtied_blocks = buffers.shared_dirtied_blocks;
-        self.shared_hit_blocks = buffers.shared_hit_blocks;
-        self.shared_read_blocks = buffers.shared_read_blocks;
-        self.shared_written_blocks = buffers.shared_written_blocks;
-        self.local_dirtied_blocks = buffers.local_dirtied_blocks;
-        self.local_hit_blocks = buffers.local_hit_blocks;
-        self.local_read_blocks = buffers.local_read_blocks;
-        self.local_written_blocks = buffers.local_written_blocks;
-        self.temp_read_blocks = buffers.temp_read_blocks;
-        self.temp_written_blocks = buffers.temp_written_blocks;
-    }
-
-    pub fn io_timing(&self) -> PlanIoTiming {
-        PlanIoTiming {
-            io_read_time: self.io_read_time,
-            io_write_time: self.io_write_time,
-        }
-    }
-
-    pub fn set_io_timing(&mut self, io_timing: PlanIoTiming) {
-        self.io_read_time = io_timing.io_read_time;
-        self.io_write_time = io_timing.io_write_time;
+    #[test]
+    fn display_uses_grouped_identity_node_type() {
+        let mut plan = Plan::default();
+        plan.identity.node_type = "Hash Join".to_string();
+        assert_eq!(format!("{plan}"), "Hash Join");
     }
 }

@@ -46,7 +46,7 @@ fn parser_pipeline_flows_from_raw_json_to_domain_to_validated_tree() {
 
     let domain = build_domain_explain(raw.into_iter().next().expect("expected first explain"))
         .expect("expected domain explain");
-    assert_eq!(domain.plan.node_type, "Nested Loop");
+    assert_eq!(domain.plan.identity.node_type, "Nested Loop");
     assert_eq!(domain.postgres_version.as_deref(), Some("16.4"));
 
     let validated = validate_plan_tree(domain).expect("expected validated tree");
@@ -78,8 +78,8 @@ fn schema_aware_parser_accepts_legacy_io_timing_aliases() {
     let explain = build_domain_explain(raw.into_iter().next().expect("expected first explain"))
         .expect("expected domain explain");
 
-    assert_eq!(explain.plan.io_read_time, 1.25);
-    assert_eq!(explain.plan.io_write_time, 0.75);
+    assert_eq!(explain.plan.io_timing.io_read_time, 1.25);
+    assert_eq!(explain.plan.io_timing.io_write_time, 0.75);
     assert_eq!(explain.postgres_version.as_deref(), Some("12.14"));
 }
 
@@ -149,13 +149,13 @@ fn grouped_raw_models_preserve_typed_identity_predicates_and_buffers() {
     let explain = build_domain_explain(raw.into_iter().next().expect("expected first explain"))
         .expect("expected domain explain");
 
-    assert_eq!(explain.plan.node_type, "Index Scan");
-    assert_eq!(explain.plan.relation_name, "coaches");
-    assert_eq!(explain.plan.index_name, "coaches_pkey");
-    assert_eq!(explain.plan.index_condition, "(coaches.id = 42)");
-    assert_eq!(explain.plan.output, vec!["coaches.id"]);
-    assert_eq!(explain.plan.shared_hit_blocks, 5);
-    assert_eq!(explain.plan.temp_written_blocks, 1);
+    assert_eq!(explain.plan.identity.node_type, "Index Scan");
+    assert_eq!(explain.plan.identity.relation_name, "coaches");
+    assert_eq!(explain.plan.identity.index_name, "coaches_pkey");
+    assert_eq!(explain.plan.predicates.index_condition, "(coaches.id = 42)");
+    assert_eq!(explain.plan.predicates.output, vec!["coaches.id"]);
+    assert_eq!(explain.plan.buffers.shared_hit_blocks, 5);
+    assert_eq!(explain.plan.buffers.temp_written_blocks, 1);
 }
 
 #[test]

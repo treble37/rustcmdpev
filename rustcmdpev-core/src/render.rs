@@ -74,7 +74,7 @@ fn write_plan(
         "{}{} {}{} {}",
         color_format(current_prefix.clone(), "prefix"),
         color_format(format!("{joint}{TREE_NODE_CONNECTOR}"), "prefix"),
-        color_format(plan.node_type.clone(), "bold"),
+        color_format(plan.identity.node_type.clone(), "bold"),
         color_format(format_details(plan.clone()), "muted"),
         color_format(format_tags(plan.clone()), "tag")
     )
@@ -90,7 +90,7 @@ fn write_plan(
     current_prefix = format!("{source_prefix}{TREE_VERTICAL} ");
     let cols = width.saturating_sub(current_prefix.len());
 
-    for line in textwrap::fill(DESCRIPTIONS[plan.node_type.as_str()], cols)
+    for line in textwrap::fill(DESCRIPTIONS[plan.identity.node_type.as_str()], cols)
         .split('\n')
         .collect::<Vec<_>>()
     {
@@ -132,80 +132,80 @@ fn write_plan(
 
     current_prefix.push_str("  ");
 
-    if !plan.join_type.is_empty() {
+    if !plan.identity.join_type.is_empty() {
         writeln!(
             buffer,
             "{}{} {}",
             color_format(current_prefix.clone(), "prefix"),
             color_format("join".to_string(), "muted"),
-            color_format(plan.join_type.clone(), "muted")
+            color_format(plan.identity.join_type.clone(), "muted")
         )
         .expect("write to string");
     }
 
-    if !plan.relation_name.is_empty() {
+    if !plan.identity.relation_name.is_empty() {
         writeln!(
             buffer,
             "{}{} {} {}",
             color_format(current_prefix.clone(), "prefix"),
             color_format("on".to_string(), "muted"),
-            color_format(plan.schema.clone(), "muted"),
-            color_format(plan.relation_name.clone(), "muted")
+            color_format(plan.identity.schema.clone(), "muted"),
+            color_format(plan.identity.relation_name.clone(), "muted")
         )
         .expect("write to string");
     }
 
-    if !plan.index_name.is_empty() {
+    if !plan.identity.index_name.is_empty() {
         writeln!(
             buffer,
             "{}{} {}",
             color_format(current_prefix.clone(), "prefix"),
             color_format("using".to_string(), "muted"),
-            plan.index_name
+            plan.identity.index_name
         )
         .expect("write to string");
     }
 
-    if !plan.index_condition.is_empty() {
+    if !plan.predicates.index_condition.is_empty() {
         writeln!(
             buffer,
             "{}{} {}",
             color_format(current_prefix.clone(), "prefix"),
             color_format("condition".to_string(), "muted"),
-            plan.index_condition
+            plan.predicates.index_condition
         )
         .expect("write to string");
     }
 
-    if !plan.filter.is_empty() {
+    if !plan.predicates.filter.is_empty() {
         writeln!(
             buffer,
             "{}{} {} [-{} rows]",
             color_format(current_prefix.clone(), "prefix"),
             color_format("filter".to_string(), "muted"),
-            plan.filter,
-            color_format(plan.rows_removed_by_filter.to_string(), "muted")
+            plan.predicates.filter,
+            color_format(plan.predicates.rows_removed_by_filter.to_string(), "muted")
         )
         .expect("write to string");
     }
 
-    if !plan.hash_condition.is_empty() {
+    if !plan.predicates.hash_condition.is_empty() {
         writeln!(
             buffer,
             "{}{} {}",
             color_format(current_prefix.clone(), "prefix"),
             color_format("on".to_string(), "muted"),
-            plan.hash_condition
+            plan.predicates.hash_condition
         )
         .expect("write to string");
     }
 
-    if !plan.cte_name.is_empty() {
+    if !plan.identity.cte_name.is_empty() {
         writeln!(
             buffer,
             "{}CTE {}",
             color_format(current_prefix.clone(), "prefix"),
-            plan.cte_name
+            plan.identity.cte_name
         )
         .expect("write to string");
     }
@@ -225,8 +225,8 @@ fn write_plan(
 
     current_prefix = source_prefix.clone();
 
-    if !plan.output.is_empty() {
-        let joined_output = plan.output.join(" + ");
+    if !plan.predicates.output.is_empty() {
+        let joined_output = plan.predicates.output.join(" + ");
         let wrapped_output = textwrap::fill(&joined_output, cols);
         for (index, line) in wrapped_output.split('\n').enumerate() {
             writeln!(

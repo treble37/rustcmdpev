@@ -314,7 +314,7 @@ fn write_table_plan(plan: &rustcmdpev_core::structure::data::plan::Plan, depth: 
     println!(
         "{}{} | {:.3} | {:.3} | {} | {}",
         indent,
-        plan.node_type,
+        plan.identity.node_type,
         plan.actuals.actual_duration,
         plan.actuals.actual_cost,
         plan.actuals.actual_rows,
