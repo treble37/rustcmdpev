@@ -8,7 +8,7 @@ fn format_tags_uses_shared_bad_estimate_threshold() {
     plan.analysis_flags.slowest = true;
     plan.analysis_flags.planner_row_estimate_factor = 100.0;
 
-    let tags = format_tags(plan);
+    let tags = format_tags(&plan);
 
     assert!(tags.contains("slowest"));
     assert!(tags.contains("bad estimate"));

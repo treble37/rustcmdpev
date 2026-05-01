@@ -17,26 +17,26 @@ pub fn duration_to_string(value: f64) -> colored::ColoredString {
     }
 }
 
-pub fn format_details(plan: plan::Plan) -> String {
-    let mut details = vec![];
+pub fn format_details(plan: &plan::Plan) -> String {
+    let mut details: Vec<&str> = Vec::new();
 
     if !plan.identity.scan_direction.is_empty() {
-        details.push(plan.identity.scan_direction);
+        details.push(plan.identity.scan_direction.as_str());
     }
 
     if !plan.identity.strategy.is_empty() {
-        details.push(plan.identity.strategy);
+        details.push(plan.identity.strategy.as_str());
     }
 
-    if !details.is_empty() {
-        return details.join(", ");
+    if details.is_empty() {
+        return String::new();
     }
 
-    "".to_string()
+    details.join(", ")
 }
 
-pub fn format_tags(plan: plan::Plan) -> String {
-    let mut tags = vec![];
+pub fn format_tags(plan: &plan::Plan) -> String {
+    let mut tags: Vec<&str> = Vec::new();
 
     if plan.analysis_flags.slowest {
         tags.push(TAG_SLOWEST);
@@ -56,6 +56,11 @@ pub fn format_tags(plan: plan::Plan) -> String {
 /// Backwards-compatible shim that defers to [`tree::output_terminator`].
 pub fn get_terminator(index: usize, plan: plan::Plan) -> String {
     tree::output_terminator(index, &plan).to_string()
+}
+
+/// Reference-based variant that avoids cloning the plan in hot render paths.
+pub fn output_terminator(index: usize, plan: &plan::Plan) -> &'static str {
+    tree::output_terminator(index, plan)
 }
 
 pub fn format_percent(number: f64, precision: usize) -> String {

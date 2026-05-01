@@ -49,7 +49,7 @@ pub fn render_explain(explain: &Explain, options: RenderOptions) -> String {
     writeln!(
         &mut buffer,
         "{}",
-        color_format(TREE_ROOT_MARKER.to_string(), "output")
+        color_format(TREE_ROOT_MARKER, "output")
     )
     .expect("write to string");
     let mut ctx = RenderContext {
@@ -73,14 +73,13 @@ fn write_plan(ctx: &mut RenderContext<'_>, plan: &Plan, position: NodePosition) 
     let explain = ctx.explain;
     let width = ctx.options.width;
     let NodePosition { prefix, last_child } = position;
-    let mut source_prefix = prefix.clone();
-    let mut current_prefix = prefix;
+    let mut source_prefix = prefix;
 
     writeln!(
         ctx.buffer,
         "{}{}",
-        color_format(source_prefix.clone(), "prefix"),
-        color_format(TREE_VERTICAL.to_string(), "prefix")
+        color_format(&source_prefix, "prefix"),
+        color_format(TREE_VERTICAL, "prefix")
     )
     .expect("write to string");
 
@@ -89,33 +88,34 @@ fn write_plan(ctx: &mut RenderContext<'_>, plan: &Plan, position: NodePosition) 
     writeln!(
         ctx.buffer,
         "{}{} {}{} {}",
-        color_format(current_prefix.clone(), "prefix"),
+        color_format(&source_prefix, "prefix"),
         color_format(format!("{joint}{TREE_NODE_CONNECTOR}"), "prefix"),
-        color_format(plan.identity.node_type.clone(), "bold"),
-        color_format(format_details(plan.clone()), "muted"),
-        color_format(format_tags(plan.clone()), "tag")
+        color_format(&plan.identity.node_type, "bold"),
+        color_format(format_details(plan), "muted"),
+        color_format(format_tags(plan), "tag")
     )
     .expect("write to string");
 
     let continuation = prefix_continuation(plan.plans.len(), last_child);
     if continuation == TREE_VERTICAL {
-        source_prefix.push_str(&format!("{TREE_VERTICAL} "));
+        source_prefix.push_str(TREE_VERTICAL);
+        source_prefix.push(' ');
     } else {
         source_prefix.push_str(continuation);
     }
 
-    current_prefix = format!("{source_prefix}{TREE_VERTICAL} ");
+    let mut current_prefix = String::with_capacity(source_prefix.len() + 4);
+    current_prefix.push_str(&source_prefix);
+    current_prefix.push_str(TREE_VERTICAL);
+    current_prefix.push(' ');
     let cols = width.saturating_sub(current_prefix.len());
 
-    for line in textwrap::fill(DESCRIPTIONS[plan.identity.node_type.as_str()], cols)
-        .split('\n')
-        .collect::<Vec<_>>()
-    {
+    for line in textwrap::fill(DESCRIPTIONS[plan.identity.node_type.as_str()], cols).split('\n') {
         writeln!(
             ctx.buffer,
             "{}{}",
-            color_format(current_prefix.clone(), "prefix"),
-            color_format(line.to_string(), "muted")
+            color_format(&current_prefix, "prefix"),
+            color_format(line, "muted")
         )
         .expect("write to string");
     }
@@ -123,7 +123,7 @@ fn write_plan(ctx: &mut RenderContext<'_>, plan: &Plan, position: NodePosition) 
     writeln!(
         ctx.buffer,
         "{}○ Duration: {} {}",
-        color_format(current_prefix.clone(), "prefix"),
+        color_format(&current_prefix, "prefix"),
         duration_to_string(plan.actuals.actual_duration),
         format_percent(
             (plan.actuals.actual_duration / explain.execution_time) * 100.0,
@@ -134,7 +134,7 @@ fn write_plan(ctx: &mut RenderContext<'_>, plan: &Plan, position: NodePosition) 
     writeln!(
         ctx.buffer,
         "{}○ Cost: {} {}",
-        color_format(current_prefix.clone(), "prefix"),
+        color_format(&current_prefix, "prefix"),
         duration_to_string(plan.actuals.actual_cost),
         format_percent((plan.actuals.actual_cost / explain.total_cost) * 100.0, 1)
     )
@@ -142,7 +142,7 @@ fn write_plan(ctx: &mut RenderContext<'_>, plan: &Plan, position: NodePosition) 
     writeln!(
         ctx.buffer,
         "{}○ Rows: {}",
-        color_format(current_prefix.clone(), "prefix"),
+        color_format(&current_prefix, "prefix"),
         plan.actuals.actual_rows
     )
     .expect("write to string");
@@ -153,9 +153,9 @@ fn write_plan(ctx: &mut RenderContext<'_>, plan: &Plan, position: NodePosition) 
         writeln!(
             ctx.buffer,
             "{}{} {}",
-            color_format(current_prefix.clone(), "prefix"),
-            color_format("join".to_string(), "muted"),
-            color_format(plan.identity.join_type.clone(), "muted")
+            color_format(&current_prefix, "prefix"),
+            color_format("join", "muted"),
+            color_format(&plan.identity.join_type, "muted")
         )
         .expect("write to string");
     }
@@ -164,10 +164,10 @@ fn write_plan(ctx: &mut RenderContext<'_>, plan: &Plan, position: NodePosition) 
         writeln!(
             ctx.buffer,
             "{}{} {} {}",
-            color_format(current_prefix.clone(), "prefix"),
-            color_format("on".to_string(), "muted"),
-            color_format(plan.identity.schema.clone(), "muted"),
-            color_format(plan.identity.relation_name.clone(), "muted")
+            color_format(&current_prefix, "prefix"),
+            color_format("on", "muted"),
+            color_format(&plan.identity.schema, "muted"),
+            color_format(&plan.identity.relation_name, "muted")
         )
         .expect("write to string");
     }
@@ -176,8 +176,8 @@ fn write_plan(ctx: &mut RenderContext<'_>, plan: &Plan, position: NodePosition) 
         writeln!(
             ctx.buffer,
             "{}{} {}",
-            color_format(current_prefix.clone(), "prefix"),
-            color_format("using".to_string(), "muted"),
+            color_format(&current_prefix, "prefix"),
+            color_format("using", "muted"),
             plan.identity.index_name
         )
         .expect("write to string");
@@ -187,8 +187,8 @@ fn write_plan(ctx: &mut RenderContext<'_>, plan: &Plan, position: NodePosition) 
         writeln!(
             ctx.buffer,
             "{}{} {}",
-            color_format(current_prefix.clone(), "prefix"),
-            color_format("condition".to_string(), "muted"),
+            color_format(&current_prefix, "prefix"),
+            color_format("condition", "muted"),
             plan.predicates.index_condition
         )
         .expect("write to string");
@@ -198,8 +198,8 @@ fn write_plan(ctx: &mut RenderContext<'_>, plan: &Plan, position: NodePosition) 
         writeln!(
             ctx.buffer,
             "{}{} {} [-{} rows]",
-            color_format(current_prefix.clone(), "prefix"),
-            color_format("filter".to_string(), "muted"),
+            color_format(&current_prefix, "prefix"),
+            color_format("filter", "muted"),
             plan.predicates.filter,
             color_format(plan.predicates.rows_removed_by_filter.to_string(), "muted")
         )
@@ -210,8 +210,8 @@ fn write_plan(ctx: &mut RenderContext<'_>, plan: &Plan, position: NodePosition) 
         writeln!(
             ctx.buffer,
             "{}{} {}",
-            color_format(current_prefix.clone(), "prefix"),
-            color_format("on".to_string(), "muted"),
+            color_format(&current_prefix, "prefix"),
+            color_format("on", "muted"),
             plan.predicates.hash_condition
         )
         .expect("write to string");
@@ -221,7 +221,7 @@ fn write_plan(ctx: &mut RenderContext<'_>, plan: &Plan, position: NodePosition) 
         writeln!(
             ctx.buffer,
             "{}CTE {}",
-            color_format(current_prefix.clone(), "prefix"),
+            color_format(&current_prefix, "prefix"),
             plan.identity.cte_name
         )
         .expect("write to string");
@@ -231,16 +231,14 @@ fn write_plan(ctx: &mut RenderContext<'_>, plan: &Plan, position: NodePosition) 
         writeln!(
             ctx.buffer,
             "{}{} {}estimated {} {:.2}x",
-            color_format(current_prefix.clone(), "prefix"),
-            color_format("rows".to_string(), "muted"),
+            color_format(&current_prefix, "prefix"),
+            color_format("rows", "muted"),
             plan.analysis_flags.planner_row_estimate_direction,
-            color_format("by".to_string(), "muted"),
+            color_format("by", "muted"),
             plan.analysis_flags.planner_row_estimate_factor
         )
         .expect("write to string");
     }
-
-    current_prefix = source_prefix.clone();
 
     if !plan.predicates.output.is_empty() {
         let joined_output = plan.predicates.output.join(" + ");
@@ -248,21 +246,28 @@ fn write_plan(ctx: &mut RenderContext<'_>, plan: &Plan, position: NodePosition) 
         for (index, line) in wrapped_output.split('\n').enumerate() {
             writeln!(
                 ctx.buffer,
-                "{}{}",
-                color_format(current_prefix.clone(), "prefix"),
-                color_format(format!("{}{}", output_terminator(index, plan), line), "output")
+                "{}{}{}",
+                color_format(&source_prefix, "prefix"),
+                color_format(output_terminator(index, plan), "output"),
+                color_format(line, "output")
             )
             .expect("write to string");
         }
     }
 
     let last_index = plan.plans.len().saturating_sub(1);
+    let child_count = plan.plans.len();
     for (index, child_plan) in plan.plans.iter().enumerate() {
+        let prefix = if index == child_count - 1 {
+            std::mem::take(&mut source_prefix)
+        } else {
+            source_prefix.clone()
+        };
         write_plan(
             ctx,
             child_plan,
             NodePosition {
-                prefix: source_prefix.clone(),
+                prefix,
                 last_child: index == last_index,
             },
         );

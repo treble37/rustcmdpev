@@ -71,7 +71,7 @@ Single consolidated checklist for MVP v1 feature parity with `gocmdpev`, plus im
 - [x] Finalize render module boundaries (`display/colors`, `display/tree`, `display/format`).
 - [x] Refactor large `Plan` model into grouped sub-structs where practical.
 - [x] Improve function signatures by introducing context structs and reducing large parameter lists.
-- [ ] Reduce unnecessary cloning and ownership churn in hot paths.
+- [x] Reduce unnecessary cloning and ownership churn in hot paths.
 
 ### G8: Output features and UX polish
 - [ ] Add theme support (`dark`, `light`, `no-color`) and condensed/verbose render modes.

@@ -1,15 +1,16 @@
 use colored::*;
 
-pub fn color_format(s: String, format: &str) -> colored::ColoredString {
+pub fn color_format<S: AsRef<str>>(s: S, format: &str) -> colored::ColoredString {
+    let text = s.as_ref();
     match format {
-        "prefix" => s.bright_black(),
-        "muted" => s.bright_black(),
-        "bold" => s.bright_white(),
-        "good" => s.green(),
-        "warning" => s.yellow(),
-        "critical" => s.red(),
-        "output" => s.cyan(),
-        "tag" => s.on_bright_red().bright_white(),
-        _ => s.green(),
+        "prefix" => text.bright_black(),
+        "muted" => text.bright_black(),
+        "bold" => text.bright_white(),
+        "good" => text.green(),
+        "warning" => text.yellow(),
+        "critical" => text.red(),
+        "output" => text.cyan(),
+        "tag" => text.on_bright_red().bright_white(),
+        _ => text.green(),
     }
 }
