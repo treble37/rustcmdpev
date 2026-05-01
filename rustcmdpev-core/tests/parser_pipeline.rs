@@ -275,7 +275,7 @@ fn rendering_is_separate_and_returns_tree_text() {
     )
     .expect("expected parsed explain");
 
-    let rendered = render_explain(&explain, RenderOptions { width: 80 });
+    let rendered = render_explain(&explain, RenderOptions::new(80));
 
     assert!(rendered.contains("Seq Scan"));
     assert!(rendered.contains("○ Duration:"));

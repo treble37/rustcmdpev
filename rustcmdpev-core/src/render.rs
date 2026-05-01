@@ -1,18 +1,71 @@
 use std::fmt::Write;
 
 use crate::constants::{DESCRIPTIONS, TREE_NODE_CONNECTOR, TREE_ROOT_MARKER, TREE_VERTICAL};
-use crate::display::colors::color_format;
+use crate::display::colors::{themed_format, Theme};
 use crate::display::format::{
-    duration_to_string, format_details, format_percent, format_tags,
+    duration_to_string_themed, format_details, format_percent, format_tags,
 };
 use crate::display::tree::{node_joint, output_terminator, prefix_continuation};
 use crate::structure::data::explain::Explain;
 use crate::structure::data::plan::Plan;
 
+/// Render verbosity for a plan.
+///
+/// `Default` matches the historical baseline. `Condensed` collapses per-node
+/// description prose and per-node output expressions; it is intended for
+/// dense scrolled views. `Verbose` adds buffer/IO timing extras after the
+/// per-node duration block.
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Default)]
+pub enum RenderMode {
+    #[default]
+    Default,
+    Condensed,
+    Verbose,
+}
+
+impl RenderMode {
+    pub fn parse(name: &str) -> Option<RenderMode> {
+        match name {
+            "default" | "normal" => Some(RenderMode::Default),
+            "condensed" | "compact" => Some(RenderMode::Condensed),
+            "verbose" | "full" => Some(RenderMode::Verbose),
+            _ => None,
+        }
+    }
+}
+
 /// Options controlling pretty-plan rendering.
 #[derive(Debug, Clone, Copy)]
 pub struct RenderOptions {
     pub width: usize,
+    pub theme: Theme,
+    pub mode: RenderMode,
+}
+
+impl RenderOptions {
+    pub fn new(width: usize) -> Self {
+        Self {
+            width,
+            theme: Theme::default(),
+            mode: RenderMode::default(),
+        }
+    }
+
+    pub fn with_theme(mut self, theme: Theme) -> Self {
+        self.theme = theme;
+        self
+    }
+
+    pub fn with_mode(mut self, mode: RenderMode) -> Self {
+        self.mode = mode;
+        self
+    }
+}
+
+impl Default for RenderOptions {
+    fn default() -> Self {
+        Self::new(60)
+    }
 }
 
 /// Mutable context threaded through the recursive render. Holds the per-render
@@ -24,6 +77,12 @@ struct RenderContext<'a> {
     options: RenderOptions,
 }
 
+impl RenderContext<'_> {
+    fn paint<S: AsRef<str>>(&self, text: S, role: &str) -> colored::ColoredString {
+        themed_format(text, role, self.options.theme)
+    }
+}
+
 /// Per-node positional arguments grouped to keep recursion signatures small.
 struct NodePosition {
     prefix: String,
@@ -33,23 +92,24 @@ struct NodePosition {
 /// Render a processed explain tree into terminal-friendly text.
 pub fn render_explain(explain: &Explain, options: RenderOptions) -> String {
     let mut buffer = String::new();
+    let theme = options.theme;
     writeln!(&mut buffer, "○ Total Cost {}", explain.total_cost).expect("write to string");
     writeln!(
         &mut buffer,
         "○ Planning Time: {}",
-        duration_to_string(explain.planning_time)
+        duration_to_string_themed(explain.planning_time, theme)
     )
     .expect("write to string");
     writeln!(
         &mut buffer,
         "○ Execution Time: {}",
-        duration_to_string(explain.execution_time)
+        duration_to_string_themed(explain.execution_time, theme)
     )
     .expect("write to string");
     writeln!(
         &mut buffer,
         "{}",
-        color_format(TREE_ROOT_MARKER, "output")
+        themed_format(TREE_ROOT_MARKER, "output", theme)
     )
     .expect("write to string");
     let mut ctx = RenderContext {
@@ -72,14 +132,15 @@ pub fn render_explain(explain: &Explain, options: RenderOptions) -> String {
 fn write_plan(ctx: &mut RenderContext<'_>, plan: &Plan, position: NodePosition) {
     let explain = ctx.explain;
     let width = ctx.options.width;
+    let mode = ctx.options.mode;
     let NodePosition { prefix, last_child } = position;
     let mut source_prefix = prefix;
 
     writeln!(
         ctx.buffer,
         "{}{}",
-        color_format(&source_prefix, "prefix"),
-        color_format(TREE_VERTICAL, "prefix")
+        ctx.paint(&source_prefix, "prefix"),
+        ctx.paint(TREE_VERTICAL, "prefix")
     )
     .expect("write to string");
 
@@ -88,11 +149,11 @@ fn write_plan(ctx: &mut RenderContext<'_>, plan: &Plan, position: NodePosition) 
     writeln!(
         ctx.buffer,
         "{}{} {}{} {}",
-        color_format(&source_prefix, "prefix"),
-        color_format(format!("{joint}{TREE_NODE_CONNECTOR}"), "prefix"),
-        color_format(&plan.identity.node_type, "bold"),
-        color_format(format_details(plan), "muted"),
-        color_format(format_tags(plan), "tag")
+        ctx.paint(&source_prefix, "prefix"),
+        ctx.paint(format!("{joint}{TREE_NODE_CONNECTOR}"), "prefix"),
+        ctx.paint(&plan.identity.node_type, "bold"),
+        ctx.paint(format_details(plan), "muted"),
+        ctx.paint(format_tags(plan), "tag")
     )
     .expect("write to string");
 
@@ -110,21 +171,24 @@ fn write_plan(ctx: &mut RenderContext<'_>, plan: &Plan, position: NodePosition) 
     current_prefix.push(' ');
     let cols = width.saturating_sub(current_prefix.len());
 
-    for line in textwrap::fill(DESCRIPTIONS[plan.identity.node_type.as_str()], cols).split('\n') {
-        writeln!(
-            ctx.buffer,
-            "{}{}",
-            color_format(&current_prefix, "prefix"),
-            color_format(line, "muted")
-        )
-        .expect("write to string");
+    if mode != RenderMode::Condensed {
+        for line in textwrap::fill(DESCRIPTIONS[plan.identity.node_type.as_str()], cols).split('\n')
+        {
+            writeln!(
+                ctx.buffer,
+                "{}{}",
+                ctx.paint(&current_prefix, "prefix"),
+                ctx.paint(line, "muted")
+            )
+            .expect("write to string");
+        }
     }
 
     writeln!(
         ctx.buffer,
         "{}○ Duration: {} {}",
-        color_format(&current_prefix, "prefix"),
-        duration_to_string(plan.actuals.actual_duration),
+        ctx.paint(&current_prefix, "prefix"),
+        duration_to_string_themed(plan.actuals.actual_duration, ctx.options.theme),
         format_percent(
             (plan.actuals.actual_duration / explain.execution_time) * 100.0,
             1
@@ -134,18 +198,61 @@ fn write_plan(ctx: &mut RenderContext<'_>, plan: &Plan, position: NodePosition) 
     writeln!(
         ctx.buffer,
         "{}○ Cost: {} {}",
-        color_format(&current_prefix, "prefix"),
-        duration_to_string(plan.actuals.actual_cost),
+        ctx.paint(&current_prefix, "prefix"),
+        duration_to_string_themed(plan.actuals.actual_cost, ctx.options.theme),
         format_percent((plan.actuals.actual_cost / explain.total_cost) * 100.0, 1)
     )
     .expect("write to string");
     writeln!(
         ctx.buffer,
         "{}○ Rows: {}",
-        color_format(&current_prefix, "prefix"),
+        ctx.paint(&current_prefix, "prefix"),
         plan.actuals.actual_rows
     )
     .expect("write to string");
+
+    if mode == RenderMode::Verbose {
+        writeln!(
+            ctx.buffer,
+            "{}○ Loops: {}",
+            ctx.paint(&current_prefix, "prefix"),
+            plan.actuals.actual_loops
+        )
+        .expect("write to string");
+        let buffers = &plan.buffers;
+        let buffer_total = buffers.shared_hit_blocks
+            + buffers.shared_read_blocks
+            + buffers.shared_written_blocks
+            + buffers.shared_dirtied_blocks
+            + buffers.local_hit_blocks
+            + buffers.local_read_blocks
+            + buffers.local_written_blocks
+            + buffers.local_dirtied_blocks
+            + buffers.temp_read_blocks
+            + buffers.temp_written_blocks;
+        if buffer_total > 0 {
+            writeln!(
+                ctx.buffer,
+                "{}○ Buffers: shared hit={} read={} written={} dirtied={}",
+                ctx.paint(&current_prefix, "prefix"),
+                buffers.shared_hit_blocks,
+                buffers.shared_read_blocks,
+                buffers.shared_written_blocks,
+                buffers.shared_dirtied_blocks,
+            )
+            .expect("write to string");
+        }
+        if plan.io_timing.io_read_time > 0.0 || plan.io_timing.io_write_time > 0.0 {
+            writeln!(
+                ctx.buffer,
+                "{}○ I/O: read={} write={}",
+                ctx.paint(&current_prefix, "prefix"),
+                duration_to_string_themed(plan.io_timing.io_read_time, ctx.options.theme),
+                duration_to_string_themed(plan.io_timing.io_write_time, ctx.options.theme),
+            )
+            .expect("write to string");
+        }
+    }
 
     current_prefix.push_str("  ");
 
@@ -153,9 +260,9 @@ fn write_plan(ctx: &mut RenderContext<'_>, plan: &Plan, position: NodePosition) 
         writeln!(
             ctx.buffer,
             "{}{} {}",
-            color_format(&current_prefix, "prefix"),
-            color_format("join", "muted"),
-            color_format(&plan.identity.join_type, "muted")
+            ctx.paint(&current_prefix, "prefix"),
+            ctx.paint("join", "muted"),
+            ctx.paint(&plan.identity.join_type, "muted")
         )
         .expect("write to string");
     }
@@ -164,10 +271,10 @@ fn write_plan(ctx: &mut RenderContext<'_>, plan: &Plan, position: NodePosition) 
         writeln!(
             ctx.buffer,
             "{}{} {} {}",
-            color_format(&current_prefix, "prefix"),
-            color_format("on", "muted"),
-            color_format(&plan.identity.schema, "muted"),
-            color_format(&plan.identity.relation_name, "muted")
+            ctx.paint(&current_prefix, "prefix"),
+            ctx.paint("on", "muted"),
+            ctx.paint(&plan.identity.schema, "muted"),
+            ctx.paint(&plan.identity.relation_name, "muted")
         )
         .expect("write to string");
     }
@@ -176,8 +283,8 @@ fn write_plan(ctx: &mut RenderContext<'_>, plan: &Plan, position: NodePosition) 
         writeln!(
             ctx.buffer,
             "{}{} {}",
-            color_format(&current_prefix, "prefix"),
-            color_format("using", "muted"),
+            ctx.paint(&current_prefix, "prefix"),
+            ctx.paint("using", "muted"),
             plan.identity.index_name
         )
         .expect("write to string");
@@ -187,8 +294,8 @@ fn write_plan(ctx: &mut RenderContext<'_>, plan: &Plan, position: NodePosition) 
         writeln!(
             ctx.buffer,
             "{}{} {}",
-            color_format(&current_prefix, "prefix"),
-            color_format("condition", "muted"),
+            ctx.paint(&current_prefix, "prefix"),
+            ctx.paint("condition", "muted"),
             plan.predicates.index_condition
         )
         .expect("write to string");
@@ -198,10 +305,10 @@ fn write_plan(ctx: &mut RenderContext<'_>, plan: &Plan, position: NodePosition) 
         writeln!(
             ctx.buffer,
             "{}{} {} [-{} rows]",
-            color_format(&current_prefix, "prefix"),
-            color_format("filter", "muted"),
+            ctx.paint(&current_prefix, "prefix"),
+            ctx.paint("filter", "muted"),
             plan.predicates.filter,
-            color_format(plan.predicates.rows_removed_by_filter.to_string(), "muted")
+            ctx.paint(plan.predicates.rows_removed_by_filter.to_string(), "muted")
         )
         .expect("write to string");
     }
@@ -210,8 +317,8 @@ fn write_plan(ctx: &mut RenderContext<'_>, plan: &Plan, position: NodePosition) 
         writeln!(
             ctx.buffer,
             "{}{} {}",
-            color_format(&current_prefix, "prefix"),
-            color_format("on", "muted"),
+            ctx.paint(&current_prefix, "prefix"),
+            ctx.paint("on", "muted"),
             plan.predicates.hash_condition
         )
         .expect("write to string");
@@ -221,7 +328,7 @@ fn write_plan(ctx: &mut RenderContext<'_>, plan: &Plan, position: NodePosition) 
         writeln!(
             ctx.buffer,
             "{}CTE {}",
-            color_format(&current_prefix, "prefix"),
+            ctx.paint(&current_prefix, "prefix"),
             plan.identity.cte_name
         )
         .expect("write to string");
@@ -231,25 +338,25 @@ fn write_plan(ctx: &mut RenderContext<'_>, plan: &Plan, position: NodePosition) 
         writeln!(
             ctx.buffer,
             "{}{} {}estimated {} {:.2}x",
-            color_format(&current_prefix, "prefix"),
-            color_format("rows", "muted"),
+            ctx.paint(&current_prefix, "prefix"),
+            ctx.paint("rows", "muted"),
             plan.analysis_flags.planner_row_estimate_direction,
-            color_format("by", "muted"),
+            ctx.paint("by", "muted"),
             plan.analysis_flags.planner_row_estimate_factor
         )
         .expect("write to string");
     }
 
-    if !plan.predicates.output.is_empty() {
+    if mode != RenderMode::Condensed && !plan.predicates.output.is_empty() {
         let joined_output = plan.predicates.output.join(" + ");
         let wrapped_output = textwrap::fill(&joined_output, cols);
         for (index, line) in wrapped_output.split('\n').enumerate() {
             writeln!(
                 ctx.buffer,
                 "{}{}{}",
-                color_format(&source_prefix, "prefix"),
-                color_format(output_terminator(index, plan), "output"),
-                color_format(line, "output")
+                ctx.paint(&source_prefix, "prefix"),
+                ctx.paint(output_terminator(index, plan), "output"),
+                ctx.paint(line, "output")
             )
             .expect("write to string");
         }
@@ -278,6 +385,7 @@ fn write_plan(ctx: &mut RenderContext<'_>, plan: &Plan, position: NodePosition) 
 mod tests {
     use super::*;
     use crate::structure::data::actuals::PlanActuals;
+    use crate::structure::data::buffers::PlanBuffers;
     use crate::structure::data::estimates::PlanEstimates;
 
     fn child_plan(node_type: &str) -> Plan {
@@ -297,23 +405,81 @@ mod tests {
         plan
     }
 
-    #[test]
-    fn render_context_threads_explain_and_options_into_recursion() {
+    fn sample_explain() -> Explain {
         let mut root = child_plan("Hash Join");
         root.plans.push(child_plan("Seq Scan"));
         root.plans.push(child_plan("Index Scan"));
-        let explain = Explain {
+        Explain {
             execution_time: 5.0,
             total_cost: 4.0,
             plan: root,
             ..Explain::default()
-        };
+        }
+    }
 
-        let rendered = render_explain(&explain, RenderOptions { width: 80 });
+    #[test]
+    fn render_context_threads_explain_and_options_into_recursion() {
+        let explain = sample_explain();
+
+        let rendered = render_explain(&explain, RenderOptions::new(80));
 
         assert!(rendered.contains("Hash Join"));
         assert!(rendered.contains("Seq Scan"));
         assert!(rendered.contains("Index Scan"));
         assert!(rendered.contains("○ Total Cost"));
+    }
+
+    #[test]
+    fn render_mode_parse_accepts_aliases() {
+        assert_eq!(RenderMode::parse("default"), Some(RenderMode::Default));
+        assert_eq!(RenderMode::parse("normal"), Some(RenderMode::Default));
+        assert_eq!(RenderMode::parse("condensed"), Some(RenderMode::Condensed));
+        assert_eq!(RenderMode::parse("compact"), Some(RenderMode::Condensed));
+        assert_eq!(RenderMode::parse("verbose"), Some(RenderMode::Verbose));
+        assert_eq!(RenderMode::parse("full"), Some(RenderMode::Verbose));
+        assert_eq!(RenderMode::parse("loud"), None);
+    }
+
+    #[test]
+    fn condensed_mode_omits_per_node_descriptions() {
+        let explain = sample_explain();
+
+        let default = render_explain(&explain, RenderOptions::new(80));
+        let condensed =
+            render_explain(&explain, RenderOptions::new(80).with_mode(RenderMode::Condensed));
+
+        assert!(default.contains("Joins to record sets"));
+        assert!(!condensed.contains("Joins to record sets"));
+    }
+
+    #[test]
+    fn verbose_mode_includes_loops_and_buffers() {
+        let mut explain = sample_explain();
+        explain.plan.buffers = PlanBuffers {
+            shared_hit_blocks: 4,
+            shared_read_blocks: 2,
+            ..PlanBuffers::default()
+        };
+
+        let default = render_explain(&explain, RenderOptions::new(80));
+        let verbose =
+            render_explain(&explain, RenderOptions::new(80).with_mode(RenderMode::Verbose));
+
+        assert!(!default.contains("○ Loops:"));
+        assert!(!default.contains("○ Buffers:"));
+        assert!(verbose.contains("○ Loops:"));
+        assert!(verbose.contains("○ Buffers:"));
+        assert!(verbose.contains("hit=4"));
+    }
+
+    #[test]
+    fn no_color_theme_strips_ansi_escapes() {
+        let explain = sample_explain();
+        let options = RenderOptions::new(80).with_theme(Theme::NoColor);
+
+        let rendered = render_explain(&explain, options);
+
+        assert!(!rendered.contains("\u{1b}["));
+        assert!(rendered.contains("Hash Join"));
     }
 }

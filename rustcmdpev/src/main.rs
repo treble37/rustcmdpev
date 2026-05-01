@@ -1,6 +1,8 @@
 use clap::{Parser, ValueEnum};
 use colored::control;
 use rustcmdpev_core::constants::{BAD_ESTIMATE_FACTOR_THRESHOLD, MAX_PLAN_DEPTH, MAX_PLAN_NODES};
+use rustcmdpev_core::display::colors::Theme;
+use rustcmdpev_core::render::{RenderMode, RenderOptions};
 use rustcmdpev_core::structure::data::explain::Explain;
 use serde_json::Value;
 use std::env;
@@ -25,6 +27,40 @@ enum ColorMode {
     Never,
 }
 
+#[derive(Copy, Clone, Debug, Eq, PartialEq, ValueEnum)]
+enum CliTheme {
+    Dark,
+    Light,
+    NoColor,
+}
+
+impl From<CliTheme> for Theme {
+    fn from(theme: CliTheme) -> Theme {
+        match theme {
+            CliTheme::Dark => Theme::Dark,
+            CliTheme::Light => Theme::Light,
+            CliTheme::NoColor => Theme::NoColor,
+        }
+    }
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq, ValueEnum)]
+enum CliRenderMode {
+    Default,
+    Condensed,
+    Verbose,
+}
+
+impl From<CliRenderMode> for RenderMode {
+    fn from(mode: CliRenderMode) -> RenderMode {
+        match mode {
+            CliRenderMode::Default => RenderMode::Default,
+            CliRenderMode::Condensed => RenderMode::Condensed,
+            CliRenderMode::Verbose => RenderMode::Verbose,
+        }
+    }
+}
+
 #[derive(Debug, Parser)]
 #[command(
     name = "rustcmdpev",
@@ -38,6 +74,10 @@ struct Cli {
     format: OutputFormat,
     #[arg(long, value_enum, default_value_t = ColorMode::Auto)]
     color: ColorMode,
+    #[arg(long, value_enum, default_value_t = CliTheme::Dark)]
+    theme: CliTheme,
+    #[arg(long = "render-mode", value_enum, default_value_t = CliRenderMode::Default)]
+    render_mode: CliRenderMode,
     #[arg(long)]
     width: Option<usize>,
     #[arg(long)]
@@ -347,6 +387,11 @@ fn run() -> Result<(), CliError> {
             "--compat currently supports only --format pretty".to_string(),
         ));
     }
+    if cli.compat && cli.render_mode != CliRenderMode::Default {
+        return Err(CliError::InvalidCompatibility(
+            "--compat requires the default render mode for parity-target output".to_string(),
+        ));
+    }
 
     let width = match (cli.compat, cli.width) {
         (true, Some(60)) | (true, None) => 60,
@@ -360,13 +405,18 @@ fn run() -> Result<(), CliError> {
     };
     debug!(width, "resolved render width");
 
+    let render_options = RenderOptions::new(width)
+        .with_theme(Theme::from(cli.theme))
+        .with_mode(RenderMode::from(cli.render_mode));
+
     match cli.format {
         OutputFormat::Pretty => {
             info!("rendering pretty output");
             validate_stdin_json_contract(&input)?;
             print!(
                 "{}",
-                rustcmdpev_core::render_visualization(&input, width).map_err(CliError::Core)?
+                rustcmdpev_core::render_visualization_with(&input, render_options)
+                    .map_err(CliError::Core)?
             );
             Ok(())
         }

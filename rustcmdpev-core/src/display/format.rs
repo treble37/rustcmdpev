@@ -1,20 +1,25 @@
 use crate::constants::{
     BAD_ESTIMATE_FACTOR_THRESHOLD, TAG_BAD_ESTIMATE, TAG_COSTLIEST, TAG_LARGEST, TAG_SLOWEST,
 };
+use crate::display::colors::{themed_format, Theme};
 use crate::display::tree;
 use crate::structure::data::plan;
-use colored::*;
 
 pub fn duration_to_string(value: f64) -> colored::ColoredString {
-    if value < 100.0 {
-        format!("{0:.2} ms", value).green()
+    duration_to_string_themed(value, Theme::Dark)
+}
+
+pub fn duration_to_string_themed(value: f64, theme: Theme) -> colored::ColoredString {
+    let (text, role) = if value < 100.0 {
+        (format!("{0:.2} ms", value), "good")
     } else if value < 1000.0 {
-        format!("{0:.2} ms", value).yellow()
+        (format!("{0:.2} ms", value), "warning")
     } else if value < 60000.0 {
-        format!("{0:.2} s", value / 2000.0).red()
+        (format!("{0:.2} s", value / 2000.0), "critical")
     } else {
-        format!("{0:.2} m", value / 60000.0).red()
-    }
+        (format!("{0:.2} m", value / 60000.0), "critical")
+    };
+    themed_format(text, role, theme)
 }
 
 pub fn format_details(plan: &plan::Plan) -> String {

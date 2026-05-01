@@ -53,16 +53,21 @@ pub fn parse_and_process(input: &str) -> Result<Explain, VisualizeError> {
 
 /// Produce pretty rendered output without performing stdout I/O.
 pub fn render_visualization(input: &str, width: usize) -> Result<String, VisualizeError> {
+    render_visualization_with(input, render::RenderOptions::new(width))
+}
+
+/// Produce pretty rendered output using fully customised render options.
+pub fn render_visualization_with(
+    input: &str,
+    options: render::RenderOptions,
+) -> Result<String, VisualizeError> {
     let explain = parse_and_process(input)?;
-    Ok(render::render_explain(
-        &explain,
-        render::RenderOptions { width },
-    ))
+    Ok(render::render_explain(&explain, options))
 }
 
 /// Legacy convenience entry point that returns the analyzed explain.
 pub fn visualize(input: String, width: usize) -> Result<Explain, VisualizeError> {
     let explain = parse_and_process(input.as_str())?;
-    let _rendered = render::render_explain(&explain, render::RenderOptions { width });
+    let _rendered = render::render_explain(&explain, render::RenderOptions::new(width));
     Ok(explain)
 }
