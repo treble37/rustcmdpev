@@ -1,11 +1,13 @@
 use std::fmt::Write;
 
-use crate::constants::{DESCRIPTIONS, TREE_NODE_CONNECTOR, TREE_ROOT_MARKER, TREE_VERTICAL};
+use crate::constants::DESCRIPTIONS;
 use crate::display::colors::{themed_format, Theme};
 use crate::display::format::{
     duration_to_string_themed, format_details, format_percent, format_tags,
 };
-use crate::display::tree::{node_joint, output_terminator, prefix_continuation};
+use crate::display::tree::{
+    styled_node_joint, styled_output_terminator, styled_prefix_continuation, TreeStyle,
+};
 use crate::structure::data::explain::Explain;
 use crate::structure::data::plan::Plan;
 use crate::summary::PlanSummary;
@@ -65,6 +67,7 @@ pub struct RenderOptions {
     pub theme: Theme,
     pub mode: RenderMode,
     pub summary: SummaryStyle,
+    pub tree_style: TreeStyle,
 }
 
 impl RenderOptions {
@@ -74,6 +77,7 @@ impl RenderOptions {
             theme: Theme::default(),
             mode: RenderMode::default(),
             summary: SummaryStyle::default(),
+            tree_style: TreeStyle::default(),
         }
     }
 
@@ -89,6 +93,11 @@ impl RenderOptions {
 
     pub fn with_summary(mut self, summary: SummaryStyle) -> Self {
         self.summary = summary;
+        self
+    }
+
+    pub fn with_tree_style(mut self, tree_style: TreeStyle) -> Self {
+        self.tree_style = tree_style;
         self
     }
 }
@@ -202,7 +211,7 @@ pub fn render_explain(explain: &Explain, options: RenderOptions) -> String {
     writeln!(
         &mut buffer,
         "{}",
-        themed_format(TREE_ROOT_MARKER, "output", theme)
+        themed_format(options.tree_style.root_marker, "output", theme)
     )
     .expect("write to string");
     let mut ctx = RenderContext {
@@ -226,6 +235,7 @@ fn write_plan(ctx: &mut RenderContext<'_>, plan: &Plan, position: NodePosition) 
     let explain = ctx.explain;
     let width = ctx.options.width;
     let mode = ctx.options.mode;
+    let style = ctx.options.tree_style;
     let NodePosition { prefix, last_child } = position;
     let mut source_prefix = prefix;
 
@@ -233,35 +243,35 @@ fn write_plan(ctx: &mut RenderContext<'_>, plan: &Plan, position: NodePosition) 
         ctx.buffer,
         "{}{}",
         ctx.paint(&source_prefix, "prefix"),
-        ctx.paint(TREE_VERTICAL, "prefix")
+        ctx.paint(style.vertical, "prefix")
     )
     .expect("write to string");
 
-    let joint = node_joint(plan.plans.len(), last_child);
+    let joint = styled_node_joint(&style, plan.plans.len(), last_child);
 
     writeln!(
         ctx.buffer,
         "{}{} {}{} {}",
         ctx.paint(&source_prefix, "prefix"),
-        ctx.paint(format!("{joint}{TREE_NODE_CONNECTOR}"), "prefix"),
+        ctx.paint(format!("{joint}{}", style.node_connector), "prefix"),
         ctx.paint(&plan.identity.node_type, "bold"),
         ctx.paint(format_details(plan), "muted"),
         ctx.paint(format_tags(plan), "tag")
     )
     .expect("write to string");
 
-    let continuation = prefix_continuation(plan.plans.len(), last_child);
-    if continuation == TREE_VERTICAL {
-        source_prefix.push_str(TREE_VERTICAL);
-        source_prefix.push(' ');
+    let continuation = styled_prefix_continuation(&style, plan.plans.len(), last_child);
+    if continuation == style.vertical {
+        source_prefix.push_str(style.vertical);
+        source_prefix.push_str(style.vertical_pad);
     } else {
         source_prefix.push_str(continuation);
     }
 
     let mut current_prefix = String::with_capacity(source_prefix.len() + 4);
     current_prefix.push_str(&source_prefix);
-    current_prefix.push_str(TREE_VERTICAL);
-    current_prefix.push(' ');
+    current_prefix.push_str(style.vertical);
+    current_prefix.push_str(style.vertical_pad);
     let cols = width.saturating_sub(current_prefix.len());
 
     if mode != RenderMode::Condensed {
@@ -448,7 +458,7 @@ fn write_plan(ctx: &mut RenderContext<'_>, plan: &Plan, position: NodePosition) 
                 ctx.buffer,
                 "{}{}{}",
                 ctx.paint(&source_prefix, "prefix"),
-                ctx.paint(output_terminator(index, plan), "output"),
+                ctx.paint(styled_output_terminator(&style, index, plan), "output"),
                 ctx.paint(line, "output")
             )
             .expect("write to string");
@@ -629,5 +639,49 @@ mod tests {
         assert_eq!(SummaryStyle::parse("detailed"), Some(SummaryStyle::Detailed));
         assert_eq!(SummaryStyle::parse("full"), Some(SummaryStyle::Detailed));
         assert_eq!(SummaryStyle::parse("crazy"), None);
+    }
+
+    #[test]
+    fn ascii_tree_style_renders_pure_ascii_tree_glyphs() {
+        let explain = sample_explain();
+        let options = RenderOptions::new(80)
+            .with_theme(Theme::NoColor)
+            .with_tree_style(TreeStyle::ascii());
+
+        let rendered = render_explain(&explain, options);
+
+        assert!(!rendered.contains('│'));
+        assert!(!rendered.contains('└'));
+        assert!(!rendered.contains('├'));
+        assert!(rendered.contains("|"));
+        assert!(rendered.contains("+--"));
+        assert!(rendered.contains("Hash Join"));
+    }
+
+    #[test]
+    fn heavy_tree_style_uses_heavy_glyphs() {
+        let explain = sample_explain();
+        let options = RenderOptions::new(80)
+            .with_theme(Theme::NoColor)
+            .with_tree_style(TreeStyle::heavy());
+
+        let rendered = render_explain(&explain, options);
+
+        assert!(rendered.contains('┃'));
+        assert!(rendered.contains('┗') || rendered.contains('┣'));
+        assert!(rendered.contains("Hash Join"));
+    }
+
+    #[test]
+    fn unicode_tree_style_remains_default() {
+        let explain = sample_explain();
+        let default = render_explain(&explain, RenderOptions::new(80).with_theme(Theme::NoColor));
+        let unicode = render_explain(
+            &explain,
+            RenderOptions::new(80)
+                .with_theme(Theme::NoColor)
+                .with_tree_style(TreeStyle::unicode()),
+        );
+        assert_eq!(default, unicode);
     }
 }

@@ -76,7 +76,7 @@ Single consolidated checklist for MVP v1 feature parity with `gocmdpev`, plus im
 ### G8: Output features and UX polish
 - [x] Add theme support (`dark`, `light`, `no-color`) and condensed/verbose render modes.
 - [x] Add summary block improvements (cost, time, loops, memory, buffers).
-- [ ] Add customization for tree drawing characters/styles.
+- [x] Add customization for tree drawing characters/styles.
 - [ ] Add `--postgres-version` hinting for parser quirks.
 
 ### G9: Quality and testing depth
