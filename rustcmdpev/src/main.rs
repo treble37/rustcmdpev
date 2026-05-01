@@ -2,7 +2,7 @@ use clap::{Parser, ValueEnum};
 use colored::control;
 use rustcmdpev_core::constants::{BAD_ESTIMATE_FACTOR_THRESHOLD, MAX_PLAN_DEPTH, MAX_PLAN_NODES};
 use rustcmdpev_core::display::colors::Theme;
-use rustcmdpev_core::render::{RenderMode, RenderOptions};
+use rustcmdpev_core::render::{RenderMode, RenderOptions, SummaryStyle};
 use rustcmdpev_core::structure::data::explain::Explain;
 use serde_json::Value;
 use std::env;
@@ -61,6 +61,21 @@ impl From<CliRenderMode> for RenderMode {
     }
 }
 
+#[derive(Copy, Clone, Debug, Eq, PartialEq, ValueEnum)]
+enum CliSummary {
+    Compact,
+    Detailed,
+}
+
+impl From<CliSummary> for SummaryStyle {
+    fn from(s: CliSummary) -> SummaryStyle {
+        match s {
+            CliSummary::Compact => SummaryStyle::Compact,
+            CliSummary::Detailed => SummaryStyle::Detailed,
+        }
+    }
+}
+
 #[derive(Debug, Parser)]
 #[command(
     name = "rustcmdpev",
@@ -78,6 +93,8 @@ struct Cli {
     theme: CliTheme,
     #[arg(long = "render-mode", value_enum, default_value_t = CliRenderMode::Default)]
     render_mode: CliRenderMode,
+    #[arg(long, value_enum, default_value_t = CliSummary::Compact)]
+    summary: CliSummary,
     #[arg(long)]
     width: Option<usize>,
     #[arg(long)]
@@ -392,6 +409,11 @@ fn run() -> Result<(), CliError> {
             "--compat requires the default render mode for parity-target output".to_string(),
         ));
     }
+    if cli.compat && cli.summary != CliSummary::Compact {
+        return Err(CliError::InvalidCompatibility(
+            "--compat requires the compact summary style for parity-target output".to_string(),
+        ));
+    }
 
     let width = match (cli.compat, cli.width) {
         (true, Some(60)) | (true, None) => 60,
@@ -407,7 +429,8 @@ fn run() -> Result<(), CliError> {
 
     let render_options = RenderOptions::new(width)
         .with_theme(Theme::from(cli.theme))
-        .with_mode(RenderMode::from(cli.render_mode));
+        .with_mode(RenderMode::from(cli.render_mode))
+        .with_summary(SummaryStyle::from(cli.summary));
 
     match cli.format {
         OutputFormat::Pretty => {

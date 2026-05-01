@@ -8,6 +8,7 @@ use crate::display::format::{
 use crate::display::tree::{node_joint, output_terminator, prefix_continuation};
 use crate::structure::data::explain::Explain;
 use crate::structure::data::plan::Plan;
+use crate::summary::PlanSummary;
 
 /// Render verbosity for a plan.
 ///
@@ -34,12 +35,36 @@ impl RenderMode {
     }
 }
 
+/// Detail level of the header summary block.
+///
+/// `Compact` preserves the gocmdpev-parity three-line header (cost, planning,
+/// execution). `Detailed` adds aggregate Total Loops, shared/local/temp buffer
+/// counts, and total I/O timing — useful for tuning without inspecting every
+/// node.
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Default)]
+pub enum SummaryStyle {
+    #[default]
+    Compact,
+    Detailed,
+}
+
+impl SummaryStyle {
+    pub fn parse(name: &str) -> Option<SummaryStyle> {
+        match name {
+            "compact" | "minimal" => Some(SummaryStyle::Compact),
+            "detailed" | "full" => Some(SummaryStyle::Detailed),
+            _ => None,
+        }
+    }
+}
+
 /// Options controlling pretty-plan rendering.
 #[derive(Debug, Clone, Copy)]
 pub struct RenderOptions {
     pub width: usize,
     pub theme: Theme,
     pub mode: RenderMode,
+    pub summary: SummaryStyle,
 }
 
 impl RenderOptions {
@@ -48,6 +73,7 @@ impl RenderOptions {
             width,
             theme: Theme::default(),
             mode: RenderMode::default(),
+            summary: SummaryStyle::default(),
         }
     }
 
@@ -58,6 +84,11 @@ impl RenderOptions {
 
     pub fn with_mode(mut self, mode: RenderMode) -> Self {
         self.mode = mode;
+        self
+    }
+
+    pub fn with_summary(mut self, summary: SummaryStyle) -> Self {
+        self.summary = summary;
         self
     }
 }
@@ -89,23 +120,85 @@ struct NodePosition {
     last_child: bool,
 }
 
+fn write_summary_block(buffer: &mut String, summary: &PlanSummary, options: RenderOptions) {
+    let theme = options.theme;
+    writeln!(buffer, "○ Total Cost {}", summary.total_cost).expect("write to string");
+    writeln!(
+        buffer,
+        "○ Planning Time: {}",
+        duration_to_string_themed(summary.planning_time, theme)
+    )
+    .expect("write to string");
+    writeln!(
+        buffer,
+        "○ Execution Time: {}",
+        duration_to_string_themed(summary.execution_time, theme)
+    )
+    .expect("write to string");
+
+    let detailed =
+        options.summary == SummaryStyle::Detailed || options.mode == RenderMode::Verbose;
+    if !detailed {
+        return;
+    }
+
+    writeln!(buffer, "○ Total Loops: {}", summary.total_loops).expect("write to string");
+    writeln!(buffer, "○ Total Nodes: {}", summary.node_count).expect("write to string");
+
+    let buffers = &summary.buffers;
+    if !buffers.is_empty() {
+        writeln!(
+            buffer,
+            "○ Buffers: shared hit={} read={} written={} dirtied={}",
+            buffers.shared_hit_blocks,
+            buffers.shared_read_blocks,
+            buffers.shared_written_blocks,
+            buffers.shared_dirtied_blocks,
+        )
+        .expect("write to string");
+        if buffers.local_hit_blocks
+            + buffers.local_read_blocks
+            + buffers.local_written_blocks
+            + buffers.local_dirtied_blocks
+            > 0
+        {
+            writeln!(
+                buffer,
+                "○ Buffers: local hit={} read={} written={} dirtied={}",
+                buffers.local_hit_blocks,
+                buffers.local_read_blocks,
+                buffers.local_written_blocks,
+                buffers.local_dirtied_blocks,
+            )
+            .expect("write to string");
+        }
+        if buffers.temp_read_blocks + buffers.temp_written_blocks > 0 {
+            writeln!(
+                buffer,
+                "○ Buffers: temp read={} written={}",
+                buffers.temp_read_blocks, buffers.temp_written_blocks,
+            )
+            .expect("write to string");
+        }
+    }
+
+    if summary.total_io_read_time > 0.0 || summary.total_io_write_time > 0.0 {
+        writeln!(
+            buffer,
+            "○ I/O Time: read={} write={}",
+            duration_to_string_themed(summary.total_io_read_time, theme),
+            duration_to_string_themed(summary.total_io_write_time, theme),
+        )
+        .expect("write to string");
+    }
+}
+
 /// Render a processed explain tree into terminal-friendly text.
 pub fn render_explain(explain: &Explain, options: RenderOptions) -> String {
     let mut buffer = String::new();
     let theme = options.theme;
-    writeln!(&mut buffer, "○ Total Cost {}", explain.total_cost).expect("write to string");
-    writeln!(
-        &mut buffer,
-        "○ Planning Time: {}",
-        duration_to_string_themed(explain.planning_time, theme)
-    )
-    .expect("write to string");
-    writeln!(
-        &mut buffer,
-        "○ Execution Time: {}",
-        duration_to_string_themed(explain.execution_time, theme)
-    )
-    .expect("write to string");
+    let summary = PlanSummary::from_explain(explain);
+    write_summary_block(&mut buffer, &summary, options);
     writeln!(
         &mut buffer,
         "{}",
@@ -481,5 +574,60 @@ mod tests {
 
         assert!(!rendered.contains("\u{1b}["));
         assert!(rendered.contains("Hash Join"));
+    }
+
+    #[test]
+    fn compact_summary_keeps_three_line_header() {
+        let explain = sample_explain();
+        let rendered = render_explain(&explain, RenderOptions::new(80).with_theme(Theme::NoColor));
+        assert!(rendered.contains("○ Total Cost"));
+        assert!(rendered.contains("○ Planning Time"));
+        assert!(rendered.contains("○ Execution Time"));
+        assert!(!rendered.contains("○ Total Loops"));
+        assert!(!rendered.contains("○ Total Nodes"));
+    }
+
+    #[test]
+    fn detailed_summary_emits_loops_nodes_buffers_and_io() {
+        let mut explain = sample_explain();
+        explain.plan.buffers = PlanBuffers {
+            shared_hit_blocks: 11,
+            shared_read_blocks: 2,
+            ..PlanBuffers::default()
+        };
+        explain.plan.io_timing.io_read_time = 0.5;
+        let options = RenderOptions::new(80)
+            .with_theme(Theme::NoColor)
+            .with_summary(SummaryStyle::Detailed);
+
+        let rendered = render_explain(&explain, options);
+
+        assert!(rendered.contains("○ Total Loops:"));
+        assert!(rendered.contains("○ Total Nodes: 3"));
+        assert!(rendered.contains("○ Buffers: shared hit=11"));
+        assert!(rendered.contains("○ I/O Time:"));
+    }
+
+    #[test]
+    fn verbose_render_mode_implies_detailed_summary() {
+        let mut explain = sample_explain();
+        explain.plan.buffers.shared_hit_blocks = 1;
+        let options = RenderOptions::new(80)
+            .with_theme(Theme::NoColor)
+            .with_mode(RenderMode::Verbose);
+
+        let rendered = render_explain(&explain, options);
+
+        assert!(rendered.contains("○ Total Loops:"));
+        assert!(rendered.contains("○ Total Nodes:"));
+    }
+
+    #[test]
+    fn summary_style_parse_accepts_aliases() {
+        assert_eq!(SummaryStyle::parse("compact"), Some(SummaryStyle::Compact));
+        assert_eq!(SummaryStyle::parse("minimal"), Some(SummaryStyle::Compact));
+        assert_eq!(SummaryStyle::parse("detailed"), Some(SummaryStyle::Detailed));
+        assert_eq!(SummaryStyle::parse("full"), Some(SummaryStyle::Detailed));
+        assert_eq!(SummaryStyle::parse("crazy"), None);
     }
 }

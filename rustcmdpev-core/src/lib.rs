@@ -9,6 +9,7 @@ pub mod display;
 pub mod parser;
 pub mod render;
 pub mod structure;
+pub mod summary;
 
 use structure::data::explain::Explain;
 
