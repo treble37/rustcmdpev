@@ -1,0 +1,40 @@
+[
+  {
+    "Plan": {
+      "Node Type": "Nested Loop",
+      "Join Type": "Inner",
+      "Total Cost": 75.0,
+      "Plan Rows": 300,
+      "Actual Rows": 300,
+      "Actual Total Time": 2.20,
+      "Actual Loops": 1,
+      "Plans": [
+        {
+          "Node Type": "Seq Scan",
+          "Schema": "public",
+          "Relation Name": "users",
+          "Total Cost": 5.0,
+          "Plan Rows": 30,
+          "Actual Rows": 30,
+          "Actual Total Time": 0.20,
+          "Actual Loops": 1
+        },
+        {
+          "Node Type": "Index Scan",
+          "Schema": "public",
+          "Relation Name": "logins",
+          "Index Name": "logins_user_id_idx",
+          "Scan Direction": "Forward",
+          "Index Cond": "(user_id = users.id)",
+          "Total Cost": 2.0,
+          "Plan Rows": 10,
+          "Actual Rows": 10,
+          "Actual Total Time": 0.05,
+          "Actual Loops": 30
+        }
+      ]
+    },
+    "Planning Time": 0.30,
+    "Execution Time": 2.55
+  }
+]

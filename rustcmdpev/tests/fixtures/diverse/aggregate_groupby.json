@@ -1,0 +1,29 @@
+[
+  {
+    "Plan": {
+      "Node Type": "Aggregate",
+      "Strategy": "Hashed",
+      "Total Cost": 30.0,
+      "Plan Rows": 4,
+      "Actual Rows": 4,
+      "Actual Total Time": 0.80,
+      "Actual Loops": 1,
+      "Plans": [
+        {
+          "Node Type": "Seq Scan",
+          "Schema": "public",
+          "Relation Name": "events",
+          "Total Cost": 20.0,
+          "Plan Rows": 1000,
+          "Actual Rows": 1000,
+          "Actual Total Time": 0.40,
+          "Actual Loops": 1,
+          "Filter": "((created_at >= '2025-01-01'::date))",
+          "Rows Removed By Filter": 250
+        }
+      ]
+    },
+    "Planning Time": 0.20,
+    "Execution Time": 1.10
+  }
+]

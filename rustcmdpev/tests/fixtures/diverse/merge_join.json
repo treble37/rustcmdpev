@@ -1,0 +1,50 @@
+[
+  {
+    "Plan": {
+      "Node Type": "Merge Join",
+      "Join Type": "Inner",
+      "Total Cost": 40.0,
+      "Plan Rows": 200,
+      "Actual Rows": 200,
+      "Actual Total Time": 1.40,
+      "Actual Loops": 1,
+      "Output": ["o.id", "o.total", "c.name"],
+      "Plans": [
+        {
+          "Node Type": "Index Only Scan",
+          "Schema": "public",
+          "Relation Name": "orders",
+          "Index Name": "orders_pkey",
+          "Total Cost": 15.0,
+          "Plan Rows": 200,
+          "Actual Rows": 200,
+          "Actual Total Time": 0.50,
+          "Actual Loops": 1,
+          "Heap Fetches": 0
+        },
+        {
+          "Node Type": "Sort",
+          "Total Cost": 20.0,
+          "Plan Rows": 200,
+          "Actual Rows": 200,
+          "Actual Total Time": 0.60,
+          "Actual Loops": 1,
+          "Plans": [
+            {
+              "Node Type": "Seq Scan",
+              "Schema": "public",
+              "Relation Name": "customers",
+              "Total Cost": 12.0,
+              "Plan Rows": 200,
+              "Actual Rows": 200,
+              "Actual Total Time": 0.30,
+              "Actual Loops": 1
+            }
+          ]
+        }
+      ]
+    },
+    "Planning Time": 0.20,
+    "Execution Time": 1.65
+  }
+]

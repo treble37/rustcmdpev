@@ -1,0 +1,30 @@
+[
+  {
+    "Plan": {
+      "Node Type": "CTE Scan",
+      "CTE Name": "ancestors",
+      "Total Cost": 50.0,
+      "Plan Rows": 20,
+      "Actual Rows": 20,
+      "Actual Total Time": 1.20,
+      "Actual Loops": 1,
+      "Plans": [
+        {
+          "Node Type": "Index Scan",
+          "Schema": "public",
+          "Relation Name": "categories",
+          "Index Name": "categories_pkey",
+          "Index Cond": "(parent_id = 1)",
+          "Scan Direction": "Forward",
+          "Total Cost": 8.0,
+          "Plan Rows": 5,
+          "Actual Rows": 5,
+          "Actual Total Time": 0.30,
+          "Actual Loops": 1
+        }
+      ]
+    },
+    "Planning Time": 0.40,
+    "Execution Time": 1.85
+  }
+]
