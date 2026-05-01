@@ -1,12 +1,11 @@
 use std::fmt::Write;
 
-use crate::constants::{
-    DESCRIPTIONS, TREE_BRANCH, TREE_ELBOW, TREE_NODE_CONNECTOR, TREE_ROOT_MARKER, TREE_VERTICAL,
-};
+use crate::constants::{DESCRIPTIONS, TREE_NODE_CONNECTOR, TREE_ROOT_MARKER, TREE_VERTICAL};
 use crate::display::colors::color_format;
 use crate::display::format::{
-    duration_to_string, format_details, format_percent, format_tags, get_terminator,
+    duration_to_string, format_details, format_percent, format_tags,
 };
+use crate::display::tree::{node_joint, output_terminator, prefix_continuation};
 use crate::structure::data::explain::Explain;
 use crate::structure::data::plan::Plan;
 
@@ -68,11 +67,7 @@ fn write_plan(
     )
     .expect("write to string");
 
-    let joint = if plan.plans.len() > 1 || last_child {
-        TREE_ELBOW
-    } else {
-        TREE_BRANCH
-    };
+    let joint = node_joint(plan.plans.len(), last_child);
 
     writeln!(
         buffer,
@@ -85,10 +80,11 @@ fn write_plan(
     )
     .expect("write to string");
 
-    if plan.plans.len() > 1 || last_child {
-        source_prefix.push_str("  ");
-    } else {
+    let continuation = prefix_continuation(plan.plans.len(), last_child);
+    if continuation == TREE_VERTICAL {
         source_prefix.push_str(&format!("{TREE_VERTICAL} "));
+    } else {
+        source_prefix.push_str(continuation);
     }
 
     current_prefix = format!("{source_prefix}{TREE_VERTICAL} ");
@@ -237,7 +233,7 @@ fn write_plan(
                 buffer,
                 "{}{}",
                 color_format(current_prefix.clone(), "prefix"),
-                color_format(get_terminator(index, plan.clone()) + line, "output")
+                color_format(format!("{}{}", output_terminator(index, plan), line), "output")
             )
             .expect("write to string");
         }

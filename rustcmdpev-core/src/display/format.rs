@@ -1,7 +1,7 @@
 use crate::constants::{
     BAD_ESTIMATE_FACTOR_THRESHOLD, TAG_BAD_ESTIMATE, TAG_COSTLIEST, TAG_LARGEST, TAG_SLOWEST,
-    TREE_OUTPUT_BRANCH, TREE_OUTPUT_CHILD, TREE_OUTPUT_CONTINUATION, TREE_OUTPUT_PADDING,
 };
+use crate::display::tree;
 use crate::structure::data::plan;
 use colored::*;
 
@@ -53,18 +53,9 @@ pub fn format_tags(plan: plan::Plan) -> String {
     tags.join(" ")
 }
 
+/// Backwards-compatible shim that defers to [`tree::output_terminator`].
 pub fn get_terminator(index: usize, plan: plan::Plan) -> String {
-    if index == 0 {
-        if plan.plans.is_empty() {
-            TREE_OUTPUT_CHILD.to_string()
-        } else {
-            TREE_OUTPUT_BRANCH.to_string()
-        }
-    } else if plan.plans.is_empty() {
-        TREE_OUTPUT_PADDING.to_string()
-    } else {
-        TREE_OUTPUT_CONTINUATION.to_string()
-    }
+    tree::output_terminator(index, &plan).to_string()
 }
 
 pub fn format_percent(number: f64, precision: usize) -> String {
