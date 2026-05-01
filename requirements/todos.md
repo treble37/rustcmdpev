@@ -80,7 +80,7 @@ Single consolidated checklist for MVP v1 feature parity with `gocmdpev`, plus im
 - [x] Add `--postgres-version` hinting for parser quirks.
 
 ### G9: Quality and testing depth
-- [ ] Expand unit tests for parsing oddities and calculation functions.
+- [x] Expand unit tests for parsing oddities and calculation functions.
 - [ ] Expand integration tests across diverse PostgreSQL plan types.
 - [ ] Add property tests for plan invariants (e.g., non-negative costs, child consistency).
 - [ ] Add fixture utilities and helpers for assertions.
