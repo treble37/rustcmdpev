@@ -83,7 +83,7 @@ Single consolidated checklist for MVP v1 feature parity with `gocmdpev`, plus im
 - [x] Expand unit tests for parsing oddities and calculation functions.
 - [x] Expand integration tests across diverse PostgreSQL plan types.
 - [x] Add property tests for plan invariants (e.g., non-negative costs, child consistency).
-- [ ] Add fixture utilities and helpers for assertions.
+- [x] Add fixture utilities and helpers for assertions.
 - [ ] Add performance benchmarks for parsing/rendering.
 - [ ] Enable strict linting policy (`clippy`, warning policy) and project rustfmt config.
 

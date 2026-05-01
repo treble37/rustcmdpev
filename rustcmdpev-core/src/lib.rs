@@ -10,6 +10,7 @@ pub mod parser;
 pub mod render;
 pub mod structure;
 pub mod summary;
+pub mod testing;
 
 use parser::ParseOptions;
 use structure::data::explain::Explain;
