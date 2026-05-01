@@ -77,7 +77,7 @@ Single consolidated checklist for MVP v1 feature parity with `gocmdpev`, plus im
 - [x] Add theme support (`dark`, `light`, `no-color`) and condensed/verbose render modes.
 - [x] Add summary block improvements (cost, time, loops, memory, buffers).
 - [x] Add customization for tree drawing characters/styles.
-- [ ] Add `--postgres-version` hinting for parser quirks.
+- [x] Add `--postgres-version` hinting for parser quirks.
 
 ### G9: Quality and testing depth
 - [ ] Expand unit tests for parsing oddities and calculation functions.

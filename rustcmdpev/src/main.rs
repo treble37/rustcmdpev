@@ -3,6 +3,7 @@ use colored::control;
 use rustcmdpev_core::constants::{BAD_ESTIMATE_FACTOR_THRESHOLD, MAX_PLAN_DEPTH, MAX_PLAN_NODES};
 use rustcmdpev_core::display::colors::Theme;
 use rustcmdpev_core::display::tree::TreeStyle;
+use rustcmdpev_core::parser::ParseOptions;
 use rustcmdpev_core::render::{RenderMode, RenderOptions, SummaryStyle};
 use rustcmdpev_core::structure::data::explain::Explain;
 use serde_json::Value;
@@ -115,6 +116,10 @@ struct Cli {
     summary: CliSummary,
     #[arg(long = "tree-style", value_enum, default_value_t = CliTreeStyle::Unicode)]
     tree_style: CliTreeStyle,
+    /// Hint at the source PostgreSQL version when the JSON payload omits it.
+    /// Used to disambiguate IO-timing fields between PG <13 and PG ≥13 plans.
+    #[arg(long = "postgres-version", value_name = "VERSION")]
+    postgres_version: Option<String>,
     #[arg(long)]
     width: Option<usize>,
     #[arg(long)]
@@ -361,9 +366,9 @@ fn configure_color(mode: ColorMode) {
     control::set_override(use_color);
 }
 
-fn parse_and_process_explain(input: &str) -> Result<Explain, CliError> {
+fn parse_and_process_explain(input: &str, parse_options: &ParseOptions) -> Result<Explain, CliError> {
     debug!("parsing and processing explain payload");
-    rustcmdpev_core::parse_and_process(input).map_err(CliError::Core)
+    rustcmdpev_core::parse_and_process_with(input, parse_options).map_err(CliError::Core)
 }
 
 fn write_table(explain: &Explain) {
@@ -458,13 +463,19 @@ fn run() -> Result<(), CliError> {
         .with_summary(SummaryStyle::from(cli.summary))
         .with_tree_style(TreeStyle::from(cli.tree_style));
 
+    let mut parse_options = ParseOptions::new();
+    if let Some(version) = cli.postgres_version.as_ref() {
+        parse_options = parse_options.with_postgres_version_hint(version.clone());
+        debug!(hint = %version, "applying postgres-version parser hint");
+    }
+
     match cli.format {
         OutputFormat::Pretty => {
             info!("rendering pretty output");
             validate_stdin_json_contract(&input)?;
             print!(
                 "{}",
-                rustcmdpev_core::render_visualization_with(&input, render_options)
+                rustcmdpev_core::render_visualization_full(&input, &parse_options, render_options)
                     .map_err(CliError::Core)?
             );
             Ok(())
@@ -472,7 +483,7 @@ fn run() -> Result<(), CliError> {
         OutputFormat::Json => {
             info!("rendering json output");
             validate_stdin_json_contract(&input)?;
-            let explain = parse_and_process_explain(&input)?;
+            let explain = parse_and_process_explain(&input, &parse_options)?;
             let output = serde_json::to_string_pretty(&explain).map_err(|err| {
                 CliError::OutputSerialization(format!("failed to serialize JSON output: {err}"))
             })?;
@@ -482,7 +493,7 @@ fn run() -> Result<(), CliError> {
         OutputFormat::Table => {
             info!("rendering table output");
             validate_stdin_json_contract(&input)?;
-            let explain = parse_and_process_explain(&input)?;
+            let explain = parse_and_process_explain(&input, &parse_options)?;
             write_table(&explain);
             Ok(())
         }

@@ -11,6 +11,7 @@ pub mod render;
 pub mod structure;
 pub mod summary;
 
+use parser::ParseOptions;
 use structure::data::explain::Explain;
 
 #[derive(Debug)]
@@ -52,6 +53,15 @@ pub fn parse_and_process(input: &str) -> Result<Explain, VisualizeError> {
     Ok(analyze_explain(explain))
 }
 
+/// Parse with explicit `ParseOptions` (e.g. a `--postgres-version` hint).
+pub fn parse_and_process_with(
+    input: &str,
+    options: &ParseOptions,
+) -> Result<Explain, VisualizeError> {
+    let explain = parser::parse_explain_document_with(input, options)?;
+    Ok(analyze_explain(explain))
+}
+
 /// Produce pretty rendered output without performing stdout I/O.
 pub fn render_visualization(input: &str, width: usize) -> Result<String, VisualizeError> {
     render_visualization_with(input, render::RenderOptions::new(width))
@@ -62,8 +72,17 @@ pub fn render_visualization_with(
     input: &str,
     options: render::RenderOptions,
 ) -> Result<String, VisualizeError> {
-    let explain = parse_and_process(input)?;
-    Ok(render::render_explain(&explain, options))
+    render_visualization_full(input, &ParseOptions::default(), options)
+}
+
+/// Produce pretty rendered output using both parser and render options.
+pub fn render_visualization_full(
+    input: &str,
+    parse_options: &ParseOptions,
+    render_options: render::RenderOptions,
+) -> Result<String, VisualizeError> {
+    let explain = parse_and_process_with(input, parse_options)?;
+    Ok(render::render_explain(&explain, render_options))
 }
 
 /// Legacy convenience entry point that returns the analyzed explain.

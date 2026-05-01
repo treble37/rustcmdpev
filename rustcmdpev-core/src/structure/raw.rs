@@ -152,9 +152,20 @@ impl RawPlanIoTiming {
     }
 }
 
-fn extract_major_version(version: &str) -> Option<u32> {
+pub fn extract_major_version(version: &str) -> Option<u32> {
     version
         .split(|c: char| !c.is_ascii_digit())
         .find(|part| !part.is_empty())
         .and_then(|part| part.parse::<u32>().ok())
+}
+
+/// Resolve a schema profile from an explicit hint (e.g. `"--postgres-version 12"`).
+pub fn schema_profile_from_hint(hint: &str) -> Option<PostgresSchemaProfile> {
+    extract_major_version(hint).map(|major| {
+        if major < 13 {
+            PostgresSchemaProfile::LegacyIoTiming
+        } else {
+            PostgresSchemaProfile::ModernIoTiming
+        }
+    })
 }
