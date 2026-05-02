@@ -72,8 +72,14 @@ fn validate_node(
         plan.actuals.actual_total_time,
         &format!("{path}.Actual Total Time"),
     )?;
-    validate_non_negative(plan.io_timing.io_read_time, &format!("{path}.I/O Read Time"))?;
-    validate_non_negative(plan.io_timing.io_write_time, &format!("{path}.I/O Write Time"))?;
+    validate_non_negative(
+        plan.io_timing.io_read_time,
+        &format!("{path}.I/O Read Time"),
+    )?;
+    validate_non_negative(
+        plan.io_timing.io_write_time,
+        &format!("{path}.I/O Write Time"),
+    )?;
 
     let mut stats = TreeStats {
         node_count: 1,

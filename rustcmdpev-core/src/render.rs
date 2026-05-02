@@ -145,8 +145,7 @@ fn write_summary_block(buffer: &mut String, summary: &PlanSummary, options: Rend
     )
     .expect("write to string");
 
-    let detailed =
-        options.summary == SummaryStyle::Detailed || options.mode == RenderMode::Verbose;
+    let detailed = options.summary == SummaryStyle::Detailed || options.mode == RenderMode::Verbose;
     if !detailed {
         return;
     }
@@ -548,8 +547,10 @@ mod tests {
         let explain = sample_explain();
 
         let default = render_explain(&explain, RenderOptions::new(80));
-        let condensed =
-            render_explain(&explain, RenderOptions::new(80).with_mode(RenderMode::Condensed));
+        let condensed = render_explain(
+            &explain,
+            RenderOptions::new(80).with_mode(RenderMode::Condensed),
+        );
 
         assert!(default.contains("Joins to record sets"));
         assert!(!condensed.contains("Joins to record sets"));
@@ -565,8 +566,10 @@ mod tests {
         };
 
         let default = render_explain(&explain, RenderOptions::new(80));
-        let verbose =
-            render_explain(&explain, RenderOptions::new(80).with_mode(RenderMode::Verbose));
+        let verbose = render_explain(
+            &explain,
+            RenderOptions::new(80).with_mode(RenderMode::Verbose),
+        );
 
         assert!(!default.contains("○ Loops:"));
         assert!(!default.contains("○ Buffers:"));
@@ -636,7 +639,10 @@ mod tests {
     fn summary_style_parse_accepts_aliases() {
         assert_eq!(SummaryStyle::parse("compact"), Some(SummaryStyle::Compact));
         assert_eq!(SummaryStyle::parse("minimal"), Some(SummaryStyle::Compact));
-        assert_eq!(SummaryStyle::parse("detailed"), Some(SummaryStyle::Detailed));
+        assert_eq!(
+            SummaryStyle::parse("detailed"),
+            Some(SummaryStyle::Detailed)
+        );
         assert_eq!(SummaryStyle::parse("full"), Some(SummaryStyle::Detailed));
         assert_eq!(SummaryStyle::parse("crazy"), None);
     }
@@ -653,7 +659,7 @@ mod tests {
         assert!(!rendered.contains('│'));
         assert!(!rendered.contains('└'));
         assert!(!rendered.contains('├'));
-        assert!(rendered.contains("|"));
+        assert!(rendered.contains('|'));
         assert!(rendered.contains("+--"));
         assert!(rendered.contains("Hash Join"));
     }

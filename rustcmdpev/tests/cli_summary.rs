@@ -23,7 +23,11 @@ const PAYLOAD: &str = r#"[{"Plan":{"Node Type":"Hash Join","Total Cost":4.0,"Act
 #[test]
 fn default_summary_keeps_three_line_header() {
     let output = run(&["--color", "never"], PAYLOAD);
-    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(stdout.contains("○ Total Cost"));
     assert!(stdout.contains("○ Planning Time"));
@@ -35,7 +39,11 @@ fn default_summary_keeps_three_line_header() {
 #[test]
 fn detailed_summary_includes_loops_buffers_and_io_time() {
     let output = run(&["--color", "never", "--summary", "detailed"], PAYLOAD);
-    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(stdout.contains("○ Total Loops:"));
     assert!(stdout.contains("○ Total Nodes: 2"));
@@ -45,7 +53,10 @@ fn detailed_summary_includes_loops_buffers_and_io_time() {
 
 #[test]
 fn compat_rejects_detailed_summary() {
-    let output = run(&["--compat", "--summary", "detailed", "--color", "never"], PAYLOAD);
+    let output = run(
+        &["--compat", "--summary", "detailed", "--color", "never"],
+        PAYLOAD,
+    );
     assert!(!output.status.success());
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(stderr.contains("--compat"));

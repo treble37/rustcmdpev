@@ -70,7 +70,10 @@ fn calculate_planner_estimate_equal_rows_clears_factor() {
     plan.actuals.actual_rows = 5;
     analysis::calculate_planner_estimate(&mut plan);
     assert_eq!(plan.analysis_flags.planner_row_estimate_factor, 0.0);
-    assert!(plan.analysis_flags.planner_row_estimate_direction.is_empty());
+    assert!(plan
+        .analysis_flags
+        .planner_row_estimate_direction
+        .is_empty());
 }
 
 #[test]
@@ -110,10 +113,7 @@ fn loops_multiplier_scales_actual_duration() {
 fn alias_postgres_version_field_is_accepted() {
     let payload = r#"[{"Postgres Version":"PostgreSQL 13.6","Plan":{"Node Type":"Seq Scan","Total Cost":1.0,"Actual Total Time":0.5,"Actual Rows":1,"Actual Loops":1}}]"#;
     let explain = parse_explain_document(payload).expect("parse");
-    assert_eq!(
-        explain.postgres_version.as_deref(),
-        Some("PostgreSQL 13.6")
-    );
+    assert_eq!(explain.postgres_version.as_deref(), Some("PostgreSQL 13.6"));
 }
 
 #[test]

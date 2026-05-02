@@ -25,7 +25,14 @@ const LEGACY_IO_PAYLOAD: &str = r#"[{"Plan":{"Node Type":"Seq Scan","Total Cost"
 #[test]
 fn postgres_version_hint_propagates_into_json_output() {
     let output = run(
-        &["--color", "never", "--format", "json", "--postgres-version", "12"],
+        &[
+            "--color",
+            "never",
+            "--format",
+            "json",
+            "--postgres-version",
+            "12",
+        ],
         LEGACY_IO_PAYLOAD,
     );
     assert!(
@@ -68,5 +75,9 @@ fn invalid_postgres_version_hint_does_not_fail() {
         ],
         LEGACY_IO_PAYLOAD,
     );
-    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
 }

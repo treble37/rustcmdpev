@@ -50,14 +50,14 @@ fn bench_parse(c: &mut Criterion) {
         b.iter(|| {
             let parsed = parse_explain_document(black_box(SMALL_PAYLOAD)).expect("parse");
             black_box(parsed);
-        })
+        });
     });
     group.throughput(Throughput::Bytes(deep.len() as u64));
     group.bench_function("deep_synthetic_127_nodes", |b| {
         b.iter(|| {
             let parsed = parse_explain_document(black_box(&deep)).expect("parse");
             black_box(parsed);
-        })
+        });
     });
     group.finish();
 }
@@ -73,14 +73,14 @@ fn bench_render(c: &mut Criterion) {
         b.iter(|| {
             let rendered = render_explain(black_box(&small), options);
             black_box(rendered);
-        })
+        });
     });
     group.bench_function("deep_synthetic_127_nodes", |b| {
         let options = RenderOptions::new(80).with_theme(Theme::NoColor);
         b.iter(|| {
             let rendered = render_explain(black_box(&deep), options);
             black_box(rendered);
-        })
+        });
     });
     group.finish();
 }
@@ -90,9 +90,10 @@ fn bench_end_to_end(c: &mut Criterion) {
     let options = RenderOptions::new(80).with_theme(Theme::NoColor);
     group.bench_function("small_fixture", |b| {
         b.iter(|| {
-            let rendered = render_visualization_with(black_box(SMALL_PAYLOAD), options).expect("render");
+            let rendered =
+                render_visualization_with(black_box(SMALL_PAYLOAD), options).expect("render");
             black_box(rendered);
-        })
+        });
     });
     group.finish();
 }

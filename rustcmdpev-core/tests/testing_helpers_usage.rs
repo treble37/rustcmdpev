@@ -30,10 +30,7 @@ fn fixture_helpers_compose_to_render_a_three_node_join() {
     assert_eq!(node_count(&join), 3);
 
     let explain = explain_for(join, 2.0, 5.0);
-    let rendered = render_explain(
-        &explain,
-        RenderOptions::new(80).with_theme(Theme::NoColor),
-    );
+    let rendered = render_explain(&explain, RenderOptions::new(80).with_theme(Theme::NoColor));
 
     assert_contains_all(
         &rendered,

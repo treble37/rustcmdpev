@@ -366,7 +366,10 @@ fn configure_color(mode: ColorMode) {
     control::set_override(use_color);
 }
 
-fn parse_and_process_explain(input: &str, parse_options: &ParseOptions) -> Result<Explain, CliError> {
+fn parse_and_process_explain(
+    input: &str,
+    parse_options: &ParseOptions,
+) -> Result<Explain, CliError> {
     debug!("parsing and processing explain payload");
     rustcmdpev_core::parse_and_process_with(input, parse_options).map_err(CliError::Core)
 }

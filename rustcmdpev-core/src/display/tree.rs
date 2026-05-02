@@ -109,11 +109,7 @@ pub fn node_joint(child_count: usize, last_child: bool) -> &'static str {
     styled_node_joint(&TreeStyle::unicode(), child_count, last_child)
 }
 
-pub fn styled_node_joint(
-    style: &TreeStyle,
-    child_count: usize,
-    last_child: bool,
-) -> &'static str {
+pub fn styled_node_joint(style: &TreeStyle, child_count: usize, last_child: bool) -> &'static str {
     if child_count > 1 || last_child {
         style.elbow
     } else {
@@ -143,11 +139,7 @@ pub fn output_terminator(index: usize, plan: &Plan) -> &'static str {
     styled_output_terminator(&TreeStyle::unicode(), index, plan)
 }
 
-pub fn styled_output_terminator(
-    style: &TreeStyle,
-    index: usize,
-    plan: &Plan,
-) -> &'static str {
+pub fn styled_output_terminator(style: &TreeStyle, index: usize, plan: &Plan) -> &'static str {
     if index == 0 {
         if plan.plans.is_empty() {
             style.output_child
@@ -230,7 +222,10 @@ mod tests {
             style.output_padding,
             style.padding,
         );
-        assert!(payload.is_ascii(), "expected ascii-only payload, got: {payload}");
+        assert!(
+            payload.is_ascii(),
+            "expected ascii-only payload, got: {payload}"
+        );
     }
 
     #[test]

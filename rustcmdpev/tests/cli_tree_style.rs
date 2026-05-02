@@ -23,7 +23,11 @@ const PAYLOAD: &str = r#"[{"Plan":{"Node Type":"Hash Join","Total Cost":4.0,"Act
 #[test]
 fn ascii_tree_style_emits_only_ascii_box_drawings() {
     let output = run(&["--color", "never", "--tree-style", "ascii"], PAYLOAD);
-    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(stdout.contains("Hash Join"));
     assert!(!stdout.contains('│'));
@@ -34,9 +38,16 @@ fn ascii_tree_style_emits_only_ascii_box_drawings() {
 #[test]
 fn heavy_tree_style_uses_heavy_glyphs() {
     let output = run(&["--color", "never", "--tree-style", "heavy"], PAYLOAD);
-    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
     let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(stdout.contains('┃'), "expected heavy vertical, got:\n{stdout}");
+    assert!(
+        stdout.contains('┃'),
+        "expected heavy vertical, got:\n{stdout}"
+    );
 }
 
 #[test]

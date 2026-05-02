@@ -85,7 +85,7 @@ Single consolidated checklist for MVP v1 feature parity with `gocmdpev`, plus im
 - [x] Add property tests for plan invariants (e.g., non-negative costs, child consistency).
 - [x] Add fixture utilities and helpers for assertions.
 - [x] Add performance benchmarks for parsing/rendering.
-- [ ] Enable strict linting policy (`clippy`, warning policy) and project rustfmt config.
+- [x] Enable strict linting policy (`clippy`, warning policy) and project rustfmt config.
 
 ### G10: Distribution and project hygiene
 - [x] Add automated changelog generation (`git-cliff`).
