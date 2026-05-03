@@ -98,7 +98,7 @@ Single consolidated checklist for MVP v1 feature parity with `gocmdpev`, plus im
 - [x] Add docs site build and publish workflow.
 
 ### G11: crates.io publishing readiness
-- [ ] Pin internal workspace dep version: change `rustcmdpev-core = { path = "../rustcmdpev-core" }` to `{ path = "../rustcmdpev-core", version = "0.1.0" }` in `rustcmdpev/Cargo.toml` (cargo refuses path-only deps at publish time).
+- [x] Pin internal workspace dep version: change `rustcmdpev-core = { path = "../rustcmdpev-core" }` to `{ path = "../rustcmdpev-core", version = "0.1.0" }` in `rustcmdpev/Cargo.toml` (cargo refuses path-only deps at publish time).
 - [ ] Add `authors` field to both `rustcmdpev/Cargo.toml` and `rustcmdpev-core/Cargo.toml`.
 - [ ] Run `cargo publish -p rustcmdpev-core --dry-run` (full verify, not just `--no-verify`) to confirm the packaged tarball compiles cleanly.
 - [ ] Run `cargo publish -p rustcmdpev --dry-run` after the core dry-run passes; document the required publish order (core first, then CLI) in the release checklist.
