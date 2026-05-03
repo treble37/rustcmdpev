@@ -11,3 +11,11 @@ Use this checklist when preparing a release tag.
 - [ ] Verify `cargo install rustcmdpev --locked` works for the release version.
 - [ ] Verify one tagged release archive installs or extracts correctly on each supported platform.
 - [ ] Verify `cat example.json | rustcmdpev` succeeds against the release binary.
+
+## crates.io publish dry-runs
+
+Run these from a clean working tree before tagging the release. Both must
+succeed (full verify, not `--no-verify`) before publishing for real.
+
+- [ ] `cargo publish -p rustcmdpev-core --dry-run` succeeds (packages, verifies
+  by compiling the packaged tarball, and aborts only at the upload step).
