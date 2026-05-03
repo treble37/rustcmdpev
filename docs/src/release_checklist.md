@@ -19,3 +19,23 @@ succeed (full verify, not `--no-verify`) before publishing for real.
 
 - [ ] `cargo publish -p rustcmdpev-core --dry-run` succeeds (packages, verifies
   by compiling the packaged tarball, and aborts only at the upload step).
+- [ ] `cargo publish -p rustcmdpev --dry-run` succeeds. This dry-run depends on
+  the published `rustcmdpev-core` version and **must be run after** the core
+  crate has been published, because cargo resolves the path-pinned
+  `rustcmdpev-core` dep against the crates.io index during verification.
+
+## Publish order
+
+The two crates must be published in the following order — `rustcmdpev` depends
+on `rustcmdpev-core`, and the published tarball cannot be verified until the
+core version it pins is live on crates.io:
+
+1. `cargo publish -p rustcmdpev-core`
+2. Wait for the new version to appear on the crates.io index (usually within
+   seconds).
+3. `cargo publish -p rustcmdpev --dry-run` to verify the CLI tarball builds
+   against the freshly published core.
+4. `cargo publish -p rustcmdpev`.
+
+If a publish fails mid-sequence, do **not** yank the core release unless
+strictly necessary; instead, fix the CLI and bump its patch version.
