@@ -59,6 +59,12 @@ Tagged releases publish platform archives with checksums through `.github/workfl
 Release tags follow semantic versioning: use `vMAJOR.MINOR.PATCH` for stable releases and
 `vMAJOR.MINOR.PATCH-PRERELEASE` for pre-release builds.
 
+> **Stability:** `rustcmdpev` and `rustcmdpev-core` are currently in the `0.x`
+> series and should be treated as pre-stable. Both the CLI surface and the
+> library API may change between `0.MINOR` releases; patch releases remain
+> backward-compatible bug fixes. See `docs/src/versioning.md` for the full
+> pre-1.0 stability posture.
+
 Homebrew is not published yet; the roadmap is to add a tap/formula after `v1.0.0` release automation
 and install smoke verification are stable. Until then, use `cargo install` or the tagged release archives.
 
