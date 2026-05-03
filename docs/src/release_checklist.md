@@ -39,3 +39,16 @@ core version it pins is live on crates.io:
 
 If a publish fails mid-sequence, do **not** yank the core release unless
 strictly necessary; instead, fix the CLI and bump its patch version.
+
+## README badge verification
+
+The crates.io and docs.rs badges in `README.md` (top of file, lines 3–4) point
+to URLs that do not exist until the first published release. Expect them to
+render as broken/404 placeholders prior to publish.
+
+After the first publish:
+
+- [ ] Confirm `https://crates.io/crates/rustcmdpev` resolves and the version
+  badge shows the published version.
+- [ ] Confirm `https://docs.rs/rustcmdpev` resolves and the docs badge shows
+  the docs.rs build status (allow a few minutes for docs.rs to build).

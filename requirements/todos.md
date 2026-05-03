@@ -102,7 +102,7 @@ Single consolidated checklist for MVP v1 feature parity with `gocmdpev`, plus im
 - [x] Add `authors` field to both `rustcmdpev/Cargo.toml` and `rustcmdpev-core/Cargo.toml`.
 - [x] Run `cargo publish -p rustcmdpev-core --dry-run` (full verify, not just `--no-verify`) to confirm the packaged tarball compiles cleanly.
 - [x] Run `cargo publish -p rustcmdpev --dry-run` after the core dry-run passes; document the required publish order (core first, then CLI) in the release checklist.
-- [ ] Acknowledge that crates.io / docs.rs README badges (`README.md:3-4`) will 404 until the first published release; verify they resolve after the initial publish.
+- [x] Acknowledge that crates.io / docs.rs README badges (`README.md:3-4`) will 404 until the first published release; verify they resolve after the initial publish.
 - [ ] Decide and document the pre-1.0 stability posture (`0.1.0`) for downstream consumers in the README or release notes.
 
 ## P2 (backlog and optional extensions)
