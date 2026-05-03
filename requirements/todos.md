@@ -97,9 +97,17 @@ Single consolidated checklist for MVP v1 feature parity with `gocmdpev`, plus im
 - [x] Add API/module-level docs for public surfaces and complex logic.
 - [x] Add docs site build and publish workflow.
 
+### G11: crates.io publishing readiness
+- [ ] Pin internal workspace dep version: change `rustcmdpev-core = { path = "../rustcmdpev-core" }` to `{ path = "../rustcmdpev-core", version = "0.1.0" }` in `rustcmdpev/Cargo.toml` (cargo refuses path-only deps at publish time).
+- [ ] Add `authors` field to both `rustcmdpev/Cargo.toml` and `rustcmdpev-core/Cargo.toml`.
+- [ ] Run `cargo publish -p rustcmdpev-core --dry-run` (full verify, not just `--no-verify`) to confirm the packaged tarball compiles cleanly.
+- [ ] Run `cargo publish -p rustcmdpev --dry-run` after the core dry-run passes; document the required publish order (core first, then CLI) in the release checklist.
+- [ ] Acknowledge that crates.io / docs.rs README badges (`README.md:3-4`) will 404 until the first published release; verify they resolve after the initial publish.
+- [ ] Decide and document the pre-1.0 stability posture (`0.1.0`) for downstream consumers in the README or release notes.
+
 ## P2 (backlog and optional extensions)
 
-### G11: Performance and optimization
+### G12: Performance and optimization
 - [ ] Investigate zero-copy deserialization opportunities (`Cow<'_, str>`) where beneficial.
 - [ ] Support streaming JSON parse from reader for very large plans.
 - [ ] Pre-compute aggregate metrics once and reuse in rendering.
@@ -107,13 +115,13 @@ Single consolidated checklist for MVP v1 feature parity with `gocmdpev`, plus im
 - [ ] Evaluate iterative traversal/memoization for deep tree performance.
 - [ ] Reduce allocations in hot paths (reuse objects/buffers where justified).
 
-### G12: Dependency and modernization follow-up
+### G13: Dependency and modernization follow-up
 - [ ] Continue modernizing Rust patterns (`?`, targeted `const fn`, idiomatic APIs).
 - [ ] Audit and update dependency set; evaluate replacing `phf` if maintainability improves.
 - [ ] Add automated dependency update workflow.
 - [ ] Add CI coverage reporting.
 
-### G13: Feature extensions (non-MVP)
+### G14: Feature extensions (non-MVP)
 - [ ] Decide and document MVP posture for Python bindings (`include` or `defer`) with date/owner/rationale.
 - [ ] Decide and document MVP posture for Rails integration (`include` or `defer`) with date/owner/rationale.
 - [ ] Evaluate optional direct Postgres connection mode (feature-flagged).
@@ -121,7 +129,7 @@ Single consolidated checklist for MVP v1 feature parity with `gocmdpev`, plus im
 - [ ] Evaluate optional CSV export.
 - [ ] Evaluate optional opt-in anonymous usage telemetry (off by default).
 
-### G14: Advanced docs and i18n ideas
+### G15: Advanced docs and i18n ideas
 - [ ] Improve inline comments for complex algorithms and design tradeoffs.
 - [ ] Expand duration formatting options and user preference support.
 - [ ] Evaluate making operator descriptions externally configurable and i18n-ready.
