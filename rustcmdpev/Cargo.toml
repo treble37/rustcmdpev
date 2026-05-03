@@ -2,6 +2,7 @@
 name = "rustcmdpev"
 version = "0.1.0"
 edition = "2021"
+authors = ["Bruce Park <treble37@users.noreply.github.com>"]
 description = "Visualize PostgreSQL EXPLAIN JSON output in a terminal-friendly tree"
 license = "MIT"
 repository = "https://github.com/treble37/rustcmdpev"
