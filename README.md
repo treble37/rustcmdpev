@@ -14,7 +14,6 @@ It started out being ported from [gocmdpev](https://github.com/simon-engledew/go
 
 # Documentation
 
-- Deep dive: `requirements/CODEBASE_OVERVIEW.md`
 - Docs site source: `docs/`
 - Docs site instructions: `docs/README.md`
 - Build the docs site (requires `mdbook`):
