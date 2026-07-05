@@ -1,6 +1,6 @@
 [package]
 name = "rustcmdpev-core"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 authors = ["Bruce Park <treble37@users.noreply.github.com>"]
 description = "Core parsing, analysis, and rendering primitives for rustcmdpev"

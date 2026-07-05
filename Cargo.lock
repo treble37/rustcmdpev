@@ -645,7 +645,7 @@ checksum = "a96887878f22d7bad8a3b6dc5b7440e0ada9a245242924394987b21cf2210a4c"
 
 [[package]]
 name = "rustcmdpev"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "clap",
  "colored",
@@ -657,7 +657,7 @@ dependencies = [
 
 [[package]]
 name = "rustcmdpev-core"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "colored",
  "criterion",
