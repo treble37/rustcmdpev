@@ -6,6 +6,7 @@
 - [psql Workflows](workflows.md)
 - [Parity Checklist](parity.md)
 - [Parity Report Template](parity_report_template.md)
+- [Parity Report v0.2.0](parity_report_v0.2.0.md)
 - [Release Checklist](release_checklist.md)
 - [Release Notes Template](release_notes_template.md)
 - [Versioning and Tags](versioning.md)
