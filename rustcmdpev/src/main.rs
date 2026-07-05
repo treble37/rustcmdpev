@@ -1,6 +1,10 @@
 use clap::{Parser, ValueEnum};
 use colored::control;
 use rustcmdpev_core::constants::{BAD_ESTIMATE_FACTOR_THRESHOLD, MAX_PLAN_DEPTH, MAX_PLAN_NODES};
+use rustcmdpev_core::display::colors::Theme;
+use rustcmdpev_core::display::tree::TreeStyle;
+use rustcmdpev_core::parser::ParseOptions;
+use rustcmdpev_core::render::{RenderMode, RenderOptions, SummaryStyle};
 use rustcmdpev_core::structure::data::explain::Explain;
 use serde_json::Value;
 use std::env;
@@ -25,6 +29,72 @@ enum ColorMode {
     Never,
 }
 
+#[derive(Copy, Clone, Debug, Eq, PartialEq, ValueEnum)]
+enum CliTheme {
+    Dark,
+    Light,
+    NoColor,
+}
+
+impl From<CliTheme> for Theme {
+    fn from(theme: CliTheme) -> Theme {
+        match theme {
+            CliTheme::Dark => Theme::Dark,
+            CliTheme::Light => Theme::Light,
+            CliTheme::NoColor => Theme::NoColor,
+        }
+    }
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq, ValueEnum)]
+enum CliRenderMode {
+    Default,
+    Condensed,
+    Verbose,
+}
+
+impl From<CliRenderMode> for RenderMode {
+    fn from(mode: CliRenderMode) -> RenderMode {
+        match mode {
+            CliRenderMode::Default => RenderMode::Default,
+            CliRenderMode::Condensed => RenderMode::Condensed,
+            CliRenderMode::Verbose => RenderMode::Verbose,
+        }
+    }
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq, ValueEnum)]
+enum CliSummary {
+    Compact,
+    Detailed,
+}
+
+impl From<CliSummary> for SummaryStyle {
+    fn from(s: CliSummary) -> SummaryStyle {
+        match s {
+            CliSummary::Compact => SummaryStyle::Compact,
+            CliSummary::Detailed => SummaryStyle::Detailed,
+        }
+    }
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq, ValueEnum)]
+enum CliTreeStyle {
+    Unicode,
+    Ascii,
+    Heavy,
+}
+
+impl From<CliTreeStyle> for TreeStyle {
+    fn from(s: CliTreeStyle) -> TreeStyle {
+        match s {
+            CliTreeStyle::Unicode => TreeStyle::unicode(),
+            CliTreeStyle::Ascii => TreeStyle::ascii(),
+            CliTreeStyle::Heavy => TreeStyle::heavy(),
+        }
+    }
+}
+
 #[derive(Debug, Parser)]
 #[command(
     name = "rustcmdpev",
@@ -38,6 +108,18 @@ struct Cli {
     format: OutputFormat,
     #[arg(long, value_enum, default_value_t = ColorMode::Auto)]
     color: ColorMode,
+    #[arg(long, value_enum, default_value_t = CliTheme::Dark)]
+    theme: CliTheme,
+    #[arg(long = "render-mode", value_enum, default_value_t = CliRenderMode::Default)]
+    render_mode: CliRenderMode,
+    #[arg(long, value_enum, default_value_t = CliSummary::Compact)]
+    summary: CliSummary,
+    #[arg(long = "tree-style", value_enum, default_value_t = CliTreeStyle::Unicode)]
+    tree_style: CliTreeStyle,
+    /// Hint at the source PostgreSQL version when the JSON payload omits it.
+    /// Used to disambiguate IO-timing fields between PG <13 and PG ≥13 plans.
+    #[arg(long = "postgres-version", value_name = "VERSION")]
+    postgres_version: Option<String>,
     #[arg(long)]
     width: Option<usize>,
     #[arg(long)]
@@ -284,9 +366,12 @@ fn configure_color(mode: ColorMode) {
     control::set_override(use_color);
 }
 
-fn parse_and_process_explain(input: &str) -> Result<Explain, CliError> {
+fn parse_and_process_explain(
+    input: &str,
+    parse_options: &ParseOptions,
+) -> Result<Explain, CliError> {
     debug!("parsing and processing explain payload");
-    rustcmdpev_core::parse_and_process(input).map_err(CliError::Core)
+    rustcmdpev_core::parse_and_process_with(input, parse_options).map_err(CliError::Core)
 }
 
 fn write_table(explain: &Explain) {
@@ -314,7 +399,7 @@ fn write_table_plan(plan: &rustcmdpev_core::structure::data::plan::Plan, depth: 
     println!(
         "{}{} | {:.3} | {:.3} | {} | {}",
         indent,
-        plan.node_type,
+        plan.identity.node_type,
         plan.actuals.actual_duration,
         plan.actuals.actual_cost,
         plan.actuals.actual_rows,
@@ -347,6 +432,21 @@ fn run() -> Result<(), CliError> {
             "--compat currently supports only --format pretty".to_string(),
         ));
     }
+    if cli.compat && cli.render_mode != CliRenderMode::Default {
+        return Err(CliError::InvalidCompatibility(
+            "--compat requires the default render mode for parity-target output".to_string(),
+        ));
+    }
+    if cli.compat && cli.summary != CliSummary::Compact {
+        return Err(CliError::InvalidCompatibility(
+            "--compat requires the compact summary style for parity-target output".to_string(),
+        ));
+    }
+    if cli.compat && cli.tree_style != CliTreeStyle::Unicode {
+        return Err(CliError::InvalidCompatibility(
+            "--compat requires the unicode tree style for parity-target output".to_string(),
+        ));
+    }
 
     let width = match (cli.compat, cli.width) {
         (true, Some(60)) | (true, None) => 60,
@@ -360,20 +460,33 @@ fn run() -> Result<(), CliError> {
     };
     debug!(width, "resolved render width");
 
+    let render_options = RenderOptions::new(width)
+        .with_theme(Theme::from(cli.theme))
+        .with_mode(RenderMode::from(cli.render_mode))
+        .with_summary(SummaryStyle::from(cli.summary))
+        .with_tree_style(TreeStyle::from(cli.tree_style));
+
+    let mut parse_options = ParseOptions::new();
+    if let Some(version) = cli.postgres_version.as_ref() {
+        parse_options = parse_options.with_postgres_version_hint(version.clone());
+        debug!(hint = %version, "applying postgres-version parser hint");
+    }
+
     match cli.format {
         OutputFormat::Pretty => {
             info!("rendering pretty output");
             validate_stdin_json_contract(&input)?;
             print!(
                 "{}",
-                rustcmdpev_core::render_visualization(&input, width).map_err(CliError::Core)?
+                rustcmdpev_core::render_visualization_full(&input, &parse_options, render_options)
+                    .map_err(CliError::Core)?
             );
             Ok(())
         }
         OutputFormat::Json => {
             info!("rendering json output");
             validate_stdin_json_contract(&input)?;
-            let explain = parse_and_process_explain(&input)?;
+            let explain = parse_and_process_explain(&input, &parse_options)?;
             let output = serde_json::to_string_pretty(&explain).map_err(|err| {
                 CliError::OutputSerialization(format!("failed to serialize JSON output: {err}"))
             })?;
@@ -383,7 +496,7 @@ fn run() -> Result<(), CliError> {
         OutputFormat::Table => {
             info!("rendering table output");
             validate_stdin_json_contract(&input)?;
-            let explain = parse_and_process_explain(&input)?;
+            let explain = parse_and_process_explain(&input, &parse_options)?;
             write_table(&explain);
             Ok(())
         }

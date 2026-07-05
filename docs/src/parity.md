@@ -4,7 +4,7 @@ This checklist summarizes feature parity with gocmdpev based on its README. See 
 
 - [x] Accepts PostgreSQL EXPLAIN JSON via stdin and renders a tree.
 - [x] Documents a macOS pbpaste + psql workflow.
-- [ ] Documents a Rust install equivalent to `go get -u` (e.g., `cargo install`).
+- [x] Documents a Rust install equivalent to `go get -u` (e.g., `cargo install`).
 - [x] Documents a Homebrew install path or explicit roadmap entry.
 - [ ] Provides Python 3 bindings via a build target.
 - [ ] Provides Ruby on Rails integration guidance (gem).
@@ -56,8 +56,8 @@ This section is the dated parity contract for the MVP v1 release target. It trac
 | Golden parity harness against upstream behavior | Planned | Core | v1.0.0 | At least four normalized parity fixtures run in CI and compare output snapshots against expected results. | Fail |
 | Strict CLI input and error contract | Complete | CLI | v1.0.0 | CLI integration tests cover valid stdin, invalid JSON, empty stdin, and contract-violating payloads with non-zero exits. | Pass |
 | Output compatibility mode | Complete | CLI | v1.0.0 | `--compat` mode is implemented, documented, and validated by CLI tests for allowed and rejected flag combinations. | Pass |
-| Bundled sample file parity | Planned | Docs | v1.0.0 | Repository ships `example.json` and docs/CI validate `cat example.json | rustcmdpev`. | Fail |
-| Install and distribution parity | Planned | Release | v1.0.0 | README/docs include release-ready install guidance and the release checklist records install smoke verification. | Fail |
+| Bundled sample file parity | Partial | Docs | v1.0.0 | Repository ships `example.json` (done) and docs/CI validate `cat example.json | rustcmdpev` (CI smoke check pending). | Fail |
+| Install and distribution parity | Partial | Release | v1.0.0 | README documents `cargo install rustcmdpev --locked` and a Homebrew roadmap note (done); release checklist install smoke verification still pending. | Fail |
 | Python and Rails parity decision | Planned | Product | v1.0.0 | `docs/src/parity.md` records whether Python bindings and Rails integration are included or deferred for MVP v1. | Fail |
 | Cross-platform workflow documentation | Planned | Docs | v1.0.0 | README or docs contain tested macOS, Linux, PowerShell, and CMD `psql` workflows. | Fail |
 | Deterministic rendering and panic-free behavior | Partial | Core | v1.0.0 | Parsing/processing returns typed errors and deterministic render snapshots pass across supported environments. | Fail |

@@ -14,7 +14,6 @@ It started out being ported from [gocmdpev](https://github.com/simon-engledew/go
 
 # Documentation
 
-- Deep dive: `requirements/CODEBASE_OVERVIEW.md`
 - Docs site source: `docs/`
 - Docs site instructions: `docs/README.md`
 - Build the docs site (requires `mdbook`):
@@ -58,6 +57,14 @@ Tagged releases publish platform archives with checksums through `.github/workfl
 
 Release tags follow semantic versioning: use `vMAJOR.MINOR.PATCH` for stable releases and
 `vMAJOR.MINOR.PATCH-PRERELEASE` for pre-release builds.
+
+> **Stability:** `rustcmdpev` and `rustcmdpev-core` are currently in the `0.x`
+> series and should be treated as pre-stable. Both the CLI surface and the
+> library API may change between `0.MINOR` releases; patch releases remain
+> backward-compatible bug fixes. See `docs/src/versioning.md` for the full
+> pre-1.0 stability posture. The `0.1.0` on crates.io is the legacy 2020
+> release of the original port; the rewrite ships as `0.2.0`
+> (see `docs/src/adr-0001-v0.2.0-supersedes-0.1.0.md`).
 
 Homebrew is not published yet; the roadmap is to add a tap/formula after `v1.0.0` release automation
 and install smoke verification are stable. Until then, use `cargo install` or the tagged release archives.

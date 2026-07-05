@@ -1,42 +1,47 @@
 use crate::constants::{
     BAD_ESTIMATE_FACTOR_THRESHOLD, TAG_BAD_ESTIMATE, TAG_COSTLIEST, TAG_LARGEST, TAG_SLOWEST,
-    TREE_OUTPUT_BRANCH, TREE_OUTPUT_CHILD, TREE_OUTPUT_CONTINUATION, TREE_OUTPUT_PADDING,
 };
+use crate::display::colors::{themed_format, Theme};
+use crate::display::tree;
 use crate::structure::data::plan;
-use colored::*;
 
 pub fn duration_to_string(value: f64) -> colored::ColoredString {
-    if value < 100.0 {
-        format!("{0:.2} ms", value).green()
+    duration_to_string_themed(value, Theme::Dark)
+}
+
+pub fn duration_to_string_themed(value: f64, theme: Theme) -> colored::ColoredString {
+    let (text, role) = if value < 100.0 {
+        (format!("{0:.2} ms", value), "good")
     } else if value < 1000.0 {
-        format!("{0:.2} ms", value).yellow()
+        (format!("{0:.2} ms", value), "warning")
     } else if value < 60000.0 {
-        format!("{0:.2} s", value / 2000.0).red()
+        (format!("{0:.2} s", value / 2000.0), "critical")
     } else {
-        format!("{0:.2} m", value / 60000.0).red()
-    }
+        (format!("{0:.2} m", value / 60000.0), "critical")
+    };
+    themed_format(text, role, theme)
 }
 
-pub fn format_details(plan: plan::Plan) -> String {
-    let mut details = vec![];
+pub fn format_details(plan: &plan::Plan) -> String {
+    let mut details: Vec<&str> = Vec::new();
 
-    if !plan.scan_direction.is_empty() {
-        details.push(plan.scan_direction);
+    if !plan.identity.scan_direction.is_empty() {
+        details.push(plan.identity.scan_direction.as_str());
     }
 
-    if !plan.strategy.is_empty() {
-        details.push(plan.strategy);
+    if !plan.identity.strategy.is_empty() {
+        details.push(plan.identity.strategy.as_str());
     }
 
-    if !details.is_empty() {
-        return details.join(", ");
+    if details.is_empty() {
+        return String::new();
     }
 
-    "".to_string()
+    details.join(", ")
 }
 
-pub fn format_tags(plan: plan::Plan) -> String {
-    let mut tags = vec![];
+pub fn format_tags(plan: &plan::Plan) -> String {
+    let mut tags: Vec<&str> = Vec::new();
 
     if plan.analysis_flags.slowest {
         tags.push(TAG_SLOWEST);
@@ -53,18 +58,14 @@ pub fn format_tags(plan: plan::Plan) -> String {
     tags.join(" ")
 }
 
+/// Backwards-compatible shim that defers to [`tree::output_terminator`].
 pub fn get_terminator(index: usize, plan: plan::Plan) -> String {
-    if index == 0 {
-        if plan.plans.is_empty() {
-            TREE_OUTPUT_CHILD.to_string()
-        } else {
-            TREE_OUTPUT_BRANCH.to_string()
-        }
-    } else if plan.plans.is_empty() {
-        TREE_OUTPUT_PADDING.to_string()
-    } else {
-        TREE_OUTPUT_CONTINUATION.to_string()
-    }
+    tree::output_terminator(index, &plan).to_string()
+}
+
+/// Reference-based variant that avoids cloning the plan in hot render paths.
+pub fn output_terminator(index: usize, plan: &plan::Plan) -> &'static str {
+    tree::output_terminator(index, plan)
 }
 
 pub fn format_percent(number: f64, precision: usize) -> String {

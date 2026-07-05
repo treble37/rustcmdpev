@@ -1,0 +1,36 @@
+[
+  {
+    "Plan": {
+      "Node Type": "Append",
+      "Total Cost": 25.0,
+      "Plan Rows": 6,
+      "Actual Rows": 6,
+      "Actual Total Time": 0.95,
+      "Actual Loops": 1,
+      "Plans": [
+        {
+          "Node Type": "Seq Scan",
+          "Schema": "public",
+          "Relation Name": "orders_2024",
+          "Total Cost": 10.0,
+          "Plan Rows": 3,
+          "Actual Rows": 3,
+          "Actual Total Time": 0.30,
+          "Actual Loops": 1
+        },
+        {
+          "Node Type": "Seq Scan",
+          "Schema": "public",
+          "Relation Name": "orders_2025",
+          "Total Cost": 12.0,
+          "Plan Rows": 3,
+          "Actual Rows": 3,
+          "Actual Total Time": 0.40,
+          "Actual Loops": 1
+        }
+      ]
+    },
+    "Planning Time": 0.05,
+    "Execution Time": 1.05
+  }
+]
