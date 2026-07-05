@@ -5,6 +5,10 @@ all-features = true
 allow = [
   "Apache-2.0",
   "MIT",
+  # MPL-2.0 is a weak file-level copyleft (OSI approved); obligations only
+  # attach when modifying the MPL-licensed files, not when depending on them.
+  # Required by `colored`.
+  "MPL-2.0",
   "Unicode-3.0",
 ]
 
