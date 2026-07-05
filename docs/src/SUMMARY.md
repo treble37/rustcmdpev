@@ -10,3 +10,4 @@
 - [Release Checklist](release_checklist.md)
 - [Release Notes Template](release_notes_template.md)
 - [Versioning and Tags](versioning.md)
+- [ADR-0001: v0.2.0 supersedes 0.1.0](adr-0001-v0.2.0-supersedes-0.1.0.md)

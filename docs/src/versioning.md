@@ -34,3 +34,12 @@ treat both `rustcmdpev` and `rustcmdpev-core` as **pre-stable**:
   reviewed for long-term commitments.
 - Pin to a fully-qualified `0.x.y` (not `0.x`) when depending on
   `rustcmdpev-core` from another crate during the pre-1.0 window.
+
+## Legacy 0.1.0 release
+
+The `rustcmdpev 0.1.0` listed on crates.io is the legacy release published on
+2020-10-06 from the original gocmdpev port — it predates the current rewrite.
+Because crates.io versions are immutable, the rewrite ships as `0.2.0` and the
+`0.1.0` listing remains as a historical artifact. `rustcmdpev-core` first
+appears on crates.io at `0.2.0` so both workspace crates stay aligned. See
+[ADR-0001](adr-0001-v0.2.0-supersedes-0.1.0.md) for the full rationale.
